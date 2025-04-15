@@ -23,7 +23,11 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Create an account" description="Enter your details below to create your account">
+    <AuthBase
+        title="Apply to Join Build Brighton"
+        description="Build Brighton is a fantastic space and community of like minded people.We are accepting applications for membership, but before applying to join, please come along to an open evening, to make sure the space meets your needs and to find out more."
+        full-layout
+    >
         <Head title="Register" />
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
@@ -74,7 +78,7 @@ const submit = () => {
                 </Button>
             </div>
 
-            <div class="text-center text-sm text-muted-foreground">
+            <div class="text-muted-foreground text-center text-sm">
                 Already have an account?
                 <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="6">Log in</TextLink>
             </div>
