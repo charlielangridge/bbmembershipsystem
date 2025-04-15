@@ -1,33 +1,72 @@
-<script setup lang="ts">
+<script setup>
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
-import AppLogo from './AppLogo.vue';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 
-const mainNavItems: NavItem[] = [
+import { Link, usePage } from '@inertiajs/vue3';
+import { ClipboardList, LogIn, LayoutGrid } from 'lucide-vue-next';
+
+const page = usePage();
+const user = page.props.auth.user;
+
+const mainNavItems = [
     {
-        title: 'Dashboard',
+        title: 'Members',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Tools & Equipment',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Activity',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Stats',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Proposals',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Resources',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Expenses',
+        href: '/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Groups',
         href: '/dashboard',
         icon: LayoutGrid,
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
-];
+const footerNavItems = page.props.auth.user
+    ? []
+    : [
+          {
+              title: 'Login',
+              href: route('login'),
+              icon: LogIn,
+          },
+          {
+              title: 'Become a member',
+              href: route('register'),
+              icon: ClipboardList,
+          },
+      ];
 </script>
 
 <template>
@@ -35,11 +74,11 @@ const footerNavItems: NavItem[] = [
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
-                            <AppLogo />
-                        </Link>
-                    </SidebarMenuButton>
+                    <!--                    <SidebarMenuButton size="lg" as-child>-->
+                    <Link :href="page.props.auth.user ? route('dashboard') : route('home')">
+                        <img src="/img/logo.png" alt="Build Brighton" :class="[page.props.auth.user ? 'size-24 mb-4' : 'mb-6 w-full', 'mix-blend-darken']" />
+                    </Link>
+                    <!--                    </SidebarMenuButton>-->
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
@@ -50,7 +89,7 @@ const footerNavItems: NavItem[] = [
 
         <SidebarFooter>
             <NavFooter :items="footerNavItems" />
-            <NavUser />
+            <NavUser v-if="user" />
         </SidebarFooter>
     </Sidebar>
     <slot />

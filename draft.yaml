@@ -1,20 +1,175 @@
 models:
-  Post:
-    title: string:400
-    content: longtext
-    published_at: nullable timestamp
+  ProfileData:
+    twitter: string:100 nullable
+    facebook: string:100 nullable
+    google_plus: string:100 nullable
+    github: string:100 nullable
+    irc: string:100 nullable
+    website: string:100 nullable
+    tagline: string nullable
+    description: text nullable
+    skills: json nullable
+    profile_photo: boolean
+    profile_photo_private: boolean
+    new_profile_photo: boolean
+    profile_photo_on_wall: boolean
+    relationships:
+      belongsTo: User
+  KeyFob:
+    key_id: string:100
+    active: boolean
+    lost: boolean
+    relationships:
+      belongsTo: User
+  AcsNode:
+    name: string:100
+    device_id: string:30
+    queued_command: string:100 nullable
+    monitor_heartbeat: boolean
+    entry_device: boolean default:0
+    api_key: string nullable
+    last_boot: datetime nullable
+    last_heartbeat: datetime nullable
+  UserAddress:
+    line_1: string:100 nullable
+    line_2: string:100 nullable
+    line_3: string:100 nullable
+    line_4: string:100 nullable
+    postcode: string:10 nullable
+    approved: boolean
+    hash: string 50 nullable
+    relationships:
+      belongsTo: User
+  Payment:
+    reason: string:20
+    reference: string:50 nullable
+    source: string:20
+    source_id: string:255 nullable
+    amount: integer
+    fee: integer
+    amount_minus_fee: integer
+    status: string:20 index
+    paid_at: datetime
+    relationships:
+      belongsTo: User
+  Proposal:
+    title: string:100
+    description: longtext
+    start_date: datetime
+    end_date: datetime
+    votes_cast: integer
+    votes_for: integer
+    votes_against: integer
+    abstentions: integer
+    quorum: boolean
+    result: integer
+    processed: boolean
+    relationships:
+      belongsTo: User
+  Expense:
+    category: string:100
+    description: string:255
+    amount: integer
+    approved: boolean
+    declined: boolean
+    file: string:255
+    expense_date: date
+    relationships:
+      belongsTo: User, User:approvedBy
+  Setting:
+    key: string:100
+    value: longtext
+  AuditLog:
+    action: string:50
+    description: string:255
+    relationships:
+      belongsTo: User, User:admin
+  AccessLog:
+    response: string:5
+    service: string:50
+    delayed: boolean
+    relationships:
+      belongsTo: User, KeyFob
+  EquipmentLog:
+    device: string
+    active: boolean
+    started_at: datetime nullable
+    last_updated_at: datetime nullable
+    ended_at: datetime nullable
+    removed: boolean
+    billed: boolean
+    processed: boolean
+    reason: string
+    notes: text nullable
+    relationships:
+      belongsTo: User, KeyFob
+  Equipment:
+    name: string:50
+    manufacturer: string:50 nullable
+    model_number: string:50 nullable
+    serial_number: string:50 nullable
+    colour: string:50 nullable
+    room: string:50 nullable
+    detail: string:50 nullable
+    slug: string nullable
+    device_key: string:20 nullable
+    description: text nullable
+    help_text: longText nullable
+    ppe: string:255 nullable
+    requires_induction: boolean default:0
+    induction_category: string:20 nullable
+    working: boolean default:1
+    permaloan: boolean default:0
+    access_fee: integer default:0
+    usage_cost: integer default:0
+    usage_cost_per: string:10
+    photos: text
+    archive: boolean default:0
+    obtained_at: date
+    removed_at: date
+    relationships:
+      belongsTo: Role:managingRole, User:permaloanedBy, AssetTag
+  Induction:
+    key: string
+    paid: boolean
+    active: boolean
+    trained_at: datetime nullable
+    is_trainer: boolean
+    relationships:
+      belongsTo: User, Payment, User:trainedBy
+  SubscriptionCharge:
+    charge_date: date
+    payment_date: date
+    amount: integer
+    status: string
+    relationships:
+      belongsTo: User
+  StorageBox:
+    size: string:10
+    active: boolean
+    relationships:
+      belongsTo: User
+  Vote:
+    vote: integer nullable
+    abstain: boolean
+    relationships:
+        belongsTo: User, Proposal
+  DetectedDevice:
+    type: string:50
+    mac_address: string:50
+    display_name: string:100 nullable
 
-controllers:
-  Post:
-    index:
-      query: all
-      render: post.index with:posts
-
-    store:
-      validate: title, content
-      save: post
-      send: ReviewNotification to:post.author with:post
-      dispatch: SyncMedia with:post
-      fire: NewPost with:post
-      flash: post.title
-      redirect: post.index
+#controllers:
+#  Post:
+#    index:
+#      query: all
+#      render: post.index with:posts
+#
+#    store:
+#      validate: title, content
+#      save: post
+#      send: ReviewNotification to:post.author with:post
+#      dispatch: SyncMedia with:post
+#      fire: NewPost with:post
+#      flash: post.title
+#      redirect: post.index
