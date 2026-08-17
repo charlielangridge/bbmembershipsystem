@@ -66,6 +66,7 @@
             "Composer\\Config::disableProcessTimeout",
             "composer audit --locked",
             "npm audit --audit-level=high",
+            "@php artisan wayfinder:generate --with-form --no-interaction",
             "npm run lint:check",
             "npm run format:check",
             "npm run types:check",
