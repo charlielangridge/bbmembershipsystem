@@ -9,6 +9,7 @@ Canonical repository: [charlielangridge/bbmembershipsystem](https://github.com/c
 - Laravel 13 on PHP 8.4
 - Inertia 3, Vue 3, and TypeScript
 - Tailwind CSS 4 and shadcn-vue components
+- Laravel Fortify authentication with registration, email verification, password confirmation, 2FA, and passkeys
 - Pest 5
 - Brick/Money; monetary values are persisted as integer pence, never floats
 - Laravel Boost project guidance, skills, and MCP configuration
@@ -19,7 +20,7 @@ Requirements: PHP 8.4, Composer 2, Node.js 24 LTS, and npm 11.
 
 ```shell
 composer install
-copy .env.example .env
+php -r "file_exists('.env') || copy('.env.example', '.env');"
 php artisan key:generate
 php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
 php artisan migrate

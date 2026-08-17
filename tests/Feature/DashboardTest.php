@@ -13,3 +13,11 @@ it('allows authenticated users to visit the dashboard', function () {
         ->get(route('dashboard'))
         ->assertOk();
 });
+
+it('requires authenticated users to verify their email', function () {
+    $user = User::factory()->unverified()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('verification.notice'));
+});

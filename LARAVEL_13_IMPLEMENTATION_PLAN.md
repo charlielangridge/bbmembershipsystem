@@ -13,8 +13,10 @@ Completed on branch `modernisation/laravel-13`:
 
 - replaced the legacy working tree with the official Laravel 13 Inertia Vue starter-kit structure while retaining the legacy commit in Git history;
 - installed and locked Inertia Laravel 3, Vue 3, TypeScript, Tailwind 4, Fortify, Wayfinder, Pest 5, Brick/Money, Larastan, Pint, and Laravel Boost;
+- finalised the official Fortify authentication implementation with registration, password reset, email verification, password confirmation, 2FA, and passkeys, removing the one-time Chisel installer;
 - converted all starter-kit PHP tests to Pest syntax;
 - installed Boost guidelines, repository skills, and MCP configuration;
+- added a GitHub Actions quality gate for dependency audits, formatting, static analysis, frontend checks/build, and Pest;
 - verified Pest, Larastan, Pint, Vue type checking, ESLint, Prettier, and the production Vite build.
 
 This is the agreed pause point. No legacy business logic, schema, integrations, or production data have been ported yet.
@@ -102,9 +104,9 @@ Why this topology:
 - Legacy source stays available through Git without being packaged or deployed with the new application.
 - Production remains untouched until an explicit deployment points to the new branch/release.
 
-### 4.2 First commit sequence
+### 4.2 Foundation change sequence
 
-Keep these as distinct commits so each concern can be reviewed or reverted:
+Keep later concerns in reviewable commits. The initial clean bootstrap was committed atomically as `0da3671` after the stack decisions were approved; it contains no copied legacy business logic and is the audit reference for the new application.
 
 1. Record the approved architecture decision and legacy baseline metadata.
 2. Remove legacy runtime sources from the modernisation branch while retaining planning documents and intentional domain fixtures.
@@ -115,7 +117,7 @@ Keep these as distinct commits so each concern can be reviewed or reverted:
 7. Record Laravel conventions and add the first behaviour through normal framework locations.
 8. Add the legacy parity ledgers and implementation backlog.
 
-Do not combine skeleton generation with copied legacy models/controllers. A clean-skeleton commit is the audit reference for every later change.
+Do not combine foundation work with copied legacy models/controllers. Commit `0da3671` is the clean-foundation audit reference for every later change.
 
 ### 4.3 Repository layout
 
@@ -169,6 +171,7 @@ Laravel Boost will be installed immediately after the skeleton and its generated
 |---|---|---|
 | Framework | Laravel `^13.0` | Track current patch releases |
 | PHP | `~8.4.0` | PHP 8.5 is a later, separate change |
+| Authentication | Laravel Fortify | Fortify owns login, registration, password reset, email verification, password confirmation, 2FA, and passkeys; do not port legacy auth controllers |
 | Tests | Pest `^5.0` | Pest is the only authored PHP test style; PHPUnit remains an implementation dependency only |
 | Database | Production-compatible supported MySQL/MariaDB | Exact engine/version decided from production inventory |
 | Frontend build | Vite + Laravel Vite plugin | No Gulp, Elixir, Browserify, or committed bundles |
@@ -325,8 +328,10 @@ Goal: establish authentication and the permissions foundation used by every late
 
 Tasks:
 
-- Implement login using existing password hashes; prove representative hashes authenticate without resets.
-- Implement secure logout, session regeneration, login throttling, password reset, and the approved email-verification policy.
+- Use Fortify as the authoritative authentication backend; do not port the legacy Laravel 5 authentication controllers or traits.
+- Map legacy users into Fortify-compatible accounts while preserving existing password hashes; prove representative hashes authenticate without resets.
+- Map the legacy verification state into `email_verified_at`, and leave 2FA/passkeys unenrolled until each member opts in.
+- Verify secure logout, session regeneration, login throttling, registration, password reset, email verification, password confirmation, 2FA, and passkey flows.
 - Map roles and role membership; implement policies for self, member, communications, finance, and admin access.
 - Implement current-user account view and a read-only admin member view.
 - Implement member directory privacy rules and profile-photo authorisation.
