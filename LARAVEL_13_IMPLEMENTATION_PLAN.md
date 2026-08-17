@@ -1,6 +1,6 @@
 # Laravel 13 Clean-Skeleton Implementation Plan
 
-Status: implementation started; clean foundation installed
+Status: clean application foundation complete; discovery, staging, and business-logic migration not started
 Decision date: 17 August 2026
 Parent plan: [MODERNISATION_MASTERPLAN.md](MODERNISATION_MASTERPLAN.md)
 Starting point: Phase 5, a clean Laravel 13 skeleton followed by a controlled port of required behaviour
@@ -17,9 +17,27 @@ Completed on branch `modernisation/laravel-13`:
 - converted all starter-kit PHP tests to Pest syntax;
 - installed Boost guidelines, repository skills, and MCP configuration;
 - added a GitHub Actions quality gate for dependency audits, formatting, static analysis, frontend checks/build, and Pest;
-- verified Pest, Larastan, Pint, Vue type checking, ESLint, Prettier, and the production Vite build.
+- made that gate reproducible from a clean checkout by generating Wayfinder routes before frontend analysis;
+- verified Pest, Larastan, Pint, Vue type checking, ESLint, Prettier, and the production Vite build locally and in [GitHub Actions run 32068268290](https://github.com/charlielangridge/bbmembershipsystem/actions/runs/32068268290).
 
 This is the agreed pause point. No legacy business logic, schema, integrations, or production data have been ported yet.
+
+### Current delivery status
+
+| Area | Status | Evidence / remaining boundary |
+|---|---|---|
+| Canonical repository and modernisation branch | Complete | `origin` is `charlielangridge/bbmembershipsystem`; work is pushed to `modernisation/laravel-13`. The deployed legacy commit still needs confirmation and a permanent baseline tag. |
+| Laravel application skeleton | Complete | Conventional Laravel 13 root layout on PHP 8.4; legacy runtime remains available in Git history only. |
+| Inertia Vue frontend foundation | Complete | Inertia 3, Vue 3, TypeScript, Tailwind 4, Vite, and Wayfinder are installed and build successfully. No legacy screens have been ported. |
+| Authentication foundation | Complete | Fortify owns registration, login/logout, password reset, verification, confirmation, 2FA, and passkeys, with Pest coverage. Legacy password, user, role, and verification-state mapping remains Milestone 3 work. |
+| Test and analysis foundation | Complete | Pest 5 is the authored PHP test style; Pint, Larastan, ESLint, Prettier, Vue type checking, and dependency audits are enforced. |
+| Laravel Boost guidance | Complete | Repository guidance, MCP configuration, and the Fortify, Inertia Vue, Wayfinder, Pest, Laravel, and Tailwind skills are installed. |
+| Money foundation | Complete as a technical decision | Brick/Money is installed and the application rule is integer pence for stored GBP values, never floats. Legacy column units, rounding rules, models, and finance workflows are not yet mapped. |
+| Continuous integration | Complete | A clean GitHub runner passed the full quality job in run 32068268290 on commit `fce6655`. Branch-protection policy remains an administrative repository task. |
+| Local production-like services | Pending | The selected MySQL/MariaDB version, queue/cache/session services, mail catcher, object storage, and developer bootstrap still need production-inventory decisions and configuration. |
+| Parity and data discovery | Not started | Milestone 0 ledgers, production schema evidence, sanitised snapshot, owners, and disposition decisions are required before business slices are ported. |
+| Staging, observability, and deployment | Not started | Automated staging deployment/rollback, monitoring decisions, runbooks, and evidence remain required before Milestone 1 can be accepted. |
+| Business logic and external integrations | Not started | Membership, finance, access control, equipment, payment providers, scheduled jobs, and legacy device contracts remain in Milestones 2–9. |
 
 ## 1. Decision and intent
 
@@ -106,7 +124,7 @@ Why this topology:
 
 ### 4.2 Foundation change sequence
 
-Keep later concerns in reviewable commits. The clean-foundation audit trail starts at `0da3671`; its follow-up commits finalise Fortify, Boost, and CI without copying legacy business logic. Review it with `git log d686bf6..modernisation/laravel-13`.
+Keep later concerns in reviewable commits. The clean-foundation audit trail starts at `0da3671`; its follow-up commits through `fce6655` finalise Fortify, Boost, and reproducible CI without copying legacy business logic. Review it with `git log d686bf6..modernisation/laravel-13`.
 
 1. Record the approved architecture decision and legacy baseline metadata.
 2. Remove legacy runtime sources from the modernisation branch while retaining planning documents and intentional domain fixtures.
