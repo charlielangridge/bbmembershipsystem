@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
+use Laravel\Passkeys\Passkey;
 
 class SecurityController extends Controller
 {
@@ -27,7 +28,7 @@ class SecurityController extends Controller
                     ->select(['id', 'name', 'credential', 'created_at', 'last_used_at'])
                     ->latest()
                     ->get()
-                    ->map(fn ($passkey) => [
+                    ->map(fn (Passkey $passkey): array => [
                         'id' => $passkey->id,
                         'name' => $passkey->name,
                         'authenticator' => $passkey->authenticator,
