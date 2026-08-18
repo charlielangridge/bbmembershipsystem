@@ -35,7 +35,8 @@ Priorities remain pending until the product owner assigns `P0`, `P1`, or `P2`. A
 
 | ID | Feature area | Legacy evidence | Proposed boundary from plan | Decision | Priority | Sign-off owner | Notes/questions |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| AUTH-01 | Login, logout, password reset, and session handling | `SessionController`, `ReminderController`, `routes.php`, login tests | Fortify replacement already selected | changed | P0 | Client/product + technical | Confirm legacy password compatibility separately under `ID-001`; retain Fortify rather than legacy controllers. |
+| APP-01 | Home page and authenticated dashboard | `/`, `HomeController::index`, `home.blade.php`, homepage tests | Candidate P0/P1 | pending | Pending | Client/product | Confirm the public and authenticated content/actions required at the root route. |
+| AUTH-01 | Login, logout, password reset, and session handling | `SessionController`, `ReminderController`, `routes.php`, login tests | Fortify replacement already selected | pending | Pending | Client/product + technical | Confirm legacy password compatibility separately under `ID-001`; retain Fortify rather than legacy controllers. |
 | AUTH-02 | Realtime/Pusher session authorisation | `session/pusher`, `SessionController::pusherAuth`, Pusher dependency | Candidate retire/replace | pending | Pending | Client/product + technical | Confirm whether any current interface still uses realtime activity. |
 | MEM-01 | Public registration and account setup | `register`, `AccountController::create/store`, signup tests | Candidate P1 | pending | Pending | Membership | Confirm current signup, approval, and initial payment expectations. |
 | MEM-02 | Member account administration and lifecycle actions | `account` resource, admin update, rejoin, cancel/destroy, trusted missing photos | Candidate P0 | pending | Pending | Membership | Capture every legal status transition in `statuses.md`. |
@@ -44,7 +45,7 @@ Priorities remain pending until the product owner assigns `P0`, `P1`, or `P2`. A
 | MEM-05 | Member directory and member detail | `MembersController`, `members/*`, member tests | Candidate P1 | pending | Pending | Membership + data/privacy | Confirm which fields are public, member-only, or staff-only. |
 | MEM-06 | Groups and group membership views | `GroupsController`, `groups/*`, group tests | Candidate P1/P2 | pending | Pending | Membership | Confirm whether groups remain distinct from authorisation roles. |
 | MEM-07 | Member induction submission and approval | `MemberInductionController`, `member_inductions`, induction tests | Candidate P1 | pending | Pending | Membership | Record approver roles, evidence, and state transitions. |
-| AUTHZ-01 | Roles, role membership, and permission management | `RolesController`, `RoleUsersController`, role middleware and tests | Candidate P0 | pending | Pending | Client/product + technical | Produce an approved permission matrix before implementation. |
+| AUTHZ-01 | Roles, role membership, and permission management | `RolesController`, `RoleUsersController`, role middleware and tests | Spatie Laravel Permission + policies; Filament administration | pending | Pending | Client/product + technical | Produce an approved permission matrix and reconciled legacy-role import before implementation. |
 | FIN-01 | Member balance and BB credit | `BalanceController`, `BalancePaymentController`, `account/balance`, finance tests | Candidate P0 | pending | Pending | Finance | Confirm stored units, negative-balance rules, and reconciliation totals. |
 | FIN-02 | Withdrawals and balance-funded payments | `BalanceController::withdrawal`, `BalancePaymentController::store` | Candidate P0 | pending | Pending | Finance | Confirm approval, notification, and audit requirements. |
 | FIN-03 | Payment administration and payment overview | `PaymentController`, `PaymentOverviewController`, `payments/*`, finance tests | Candidate P0 | pending | Pending | Finance | Map payment states and correction/deletion rules. |
@@ -69,20 +70,22 @@ Priorities remain pending until the product owner assigns `P0`, `P1`, or `P2`. A
 | COMM-01 | In-app notifications | `NotificationController`, notification views/package | Candidate P1 | pending | Pending | Membership | Confirm read/unread semantics and retained notification types. |
 | COMM-02 | Broadcast email to members/groups | `NotificationEmailController`, email views, Slack-related group fields | Candidate P1 | pending | Pending | Membership + data/privacy | Confirm audience selection, consent, audit, and delivery provider. |
 | COMM-03 | Feedback submission | `FeedbackController`, feedback widget/email | Candidate P2 | pending | Pending | Client/product | Confirm destination, retention, and whether another support channel replaces it. |
+| COMM-04 | Member lifecycle emails triggered by status changes | `UserObserver`, `UserMailer`, welcome/payment-warning/suspended/left email views | Candidate P0/P1 | pending | Pending | Membership | Confirm trigger transitions, recipients, templates, retry behaviour, and audit requirements. |
+| COMM-05 | Discord status-change webhook notifications | `UserObserver::sendSlackNotification`, `DISCORD_WEBHOOK`, Discord webhook request | Candidate retire/replace | pending | Pending | Membership + operations | Despite the historical method name, current candidate code posts to Discord; confirm whether this is live and which status events must remain. |
 | GOV-01 | Proposals, voting, and vote calculation | `ProposalController`, proposal command/views/tests | Candidate P2 | pending | Pending | Client/product | Confirm voting rules, electorate, deadlines, visibility, and historical access. |
 | FIN-07 | Expense submission and approval | `ExpensesController`, expense views/emails/tests | Candidate P1 | pending | Pending | Finance | Confirm approval roles, receipt storage, payment states, and retention. |
 | SPACE-01 | Member storage-box allocation and charging | `StorageBoxController`, storage views/tests | Candidate P1 | pending | Pending | Membership + finance | Confirm allocation rules, pricing, and historical balances. |
 | REPORT-01 | Member and direct-debit statistics | `StatsController`, stats views/tests | Candidate P2 | pending | Pending | Client/product + finance | List exact decisions/reports these statistics support. |
 | REPORT-02 | Activity and realtime activity views | `ActivityController`, activity views/tests, Pusher integration | Candidate P2/change | pending | Pending | Client/product + data/privacy | Confirm visibility, retention, and whether realtime remains required. |
 | CONTENT-01 | Member resources and policy documents | `ResourcesController`, resource/policy views | Candidate P1 | pending | Pending | Client/product | Identify the current document source and acceptance/versioning workflow. |
-| ADMIN-01 | Application settings update | `SettingsController`, settings table/migration | Candidate P0/P1 | pending | Pending | Technical + relevant business owner | Inventory every setting key from production-safe evidence. |
+| ADMIN-01 | Application settings update | `SettingsController`, settings table/migration | Candidate P0/P1; Filament administration | pending | Pending | Technical + relevant business owner | Inventory every setting key from production-safe evidence. |
 | ADMIN-02 | Swagger/API documentation endpoints | `/api-docs`, Swagger configuration/dependency | Candidate retire/replace | pending | Pending | Technical | Determine whether operators or devices consume generated documentation. |
 | ADMIN-03 | Web log viewer and Clockwork/debug tooling | `/logs`, log-viewer and Clockwork dependencies | Candidate retire/replace | pending | Pending | Operations + technical | Replace with approved observability; do not expose production logs through the app. |
 
 ## Evidence consulted
 
 - `app/Http/routes.php` at legacy revision `d686bf6`.
-- Controllers under `app/Http/Controllers/` at that revision.
+- Controllers under `app/Http/Controllers/` and `app/Observer/UserObserver.php` at that revision.
 - Scheduled commands and `app/Console/Kernel.php` at that revision.
 - Legacy views, migrations, Composer dependencies, PHPUnit tests, and Codeception suites at that revision.
 - Priority candidates and non-goals in `LARAVEL_13_IMPLEMENTATION_PLAN.md`.

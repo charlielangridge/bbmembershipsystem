@@ -7,6 +7,11 @@ Starting point: Phase 5, a clean Laravel 13 skeleton followed by a controlled po
 
 Canonical repository: [charlielangridge/bbmembershipsystem](https://github.com/charlielangridge/bbmembershipsystem)
 
+### Architecture decisions — 18 August 2026
+
+- Spatie Laravel Permission is the authoritative role/permission implementation; see [ADR 0001](docs/adr/0001-use-spatie-laravel-permission.md).
+- Filament is the privileged administration panel, while Inertia Vue remains the member-facing application; see [ADR 0002](docs/adr/0002-use-filament-for-administration.md).
+
 ### Foundation checkpoint — 17 August 2026
 
 Completed on branch `modernisation/laravel-13`:
@@ -30,6 +35,7 @@ This is the agreed pause point. No legacy business logic, schema, integrations, 
 | Laravel application skeleton | Complete | Conventional Laravel 13 root layout on PHP 8.4; legacy runtime remains available in Git history only. |
 | Inertia Vue frontend foundation | Complete | Inertia 3, Vue 3, TypeScript, Tailwind 4, Vite, and Wayfinder are installed and build successfully. No legacy screens have been ported. |
 | Authentication foundation | Complete | Fortify owns registration, login/logout, password reset, verification, confirmation, 2FA, and passkeys, with Pest coverage. Legacy password, user, role, and verification-state mapping remains Milestone 3 work. |
+| Permissions and administration | Decision complete; implementation pending | Spatie Laravel Permission will own roles/permissions and Laravel policies will enforce them. Filament will provide privileged administration using the same `User` model and `web` guard as the Fortify member flows; package installation and legacy-role migration remain Milestone 3 work. |
 | Test and analysis foundation | Complete | Pest 5 is the authored PHP test style; Pint, Larastan, ESLint, Prettier, Vue type checking, and dependency audits are enforced. |
 | Laravel Boost guidance | Complete | Repository guidance, MCP configuration, and the Fortify, Inertia Vue, Wayfinder, Pest, Laravel, and Tailwind skills are installed. |
 | Money foundation | Complete as a technical decision | Brick/Money is installed and the application rule is integer pence for stored GBP values, never floats. Legacy column units, rounding rules, models, and finance workflows are not yet mapped. |
@@ -146,6 +152,7 @@ app/
   Console/Commands/
   Enums/
   Events/
+  Filament/
   Http/
     Controllers/
     Middleware/
@@ -190,11 +197,13 @@ Laravel Boost will be installed immediately after the skeleton and its generated
 | Framework | Laravel `^13.0` | Track current patch releases |
 | PHP | `~8.4.0` | PHP 8.5 is a later, separate change |
 | Authentication | Laravel Fortify | Fortify owns login, registration, password reset, email verification, password confirmation, 2FA, and passkeys; do not port legacy auth controllers |
+| Authorisation | Spatie Laravel Permission `^8.0` + Laravel policies | Import legacy roles/assignments into one authoritative permission store; policies remain the enforcement boundary |
 | Tests | Pest `^5.0` | Pest is the only authored PHP test style; PHPUnit remains an implementation dependency only |
 | Database | Production-compatible supported MySQL/MariaDB | Exact engine/version decided from production inventory |
 | Frontend build | Vite + Laravel Vite plugin | No Gulp, Elixir, Browserify, or committed bundles |
 | Node | 24 LTS | Pin locally and in CI; use npm |
-| Server UI | Inertia `^3.0` + Vue `^3.5` + TypeScript | Use Laravel routes/controllers with pages under `resources/js/pages` |
+| Member UI | Inertia `^3.0` + Vue `^3.5` + TypeScript | Use Laravel routes/controllers with pages under `resources/js/pages` for public and member-facing journeys |
+| Administration UI | Filament `^5.0` panel builder + Livewire 4 | Use Filament resources/pages/actions for privileged operations against the same user identity and policies; keep Livewire inside the administration boundary |
 | Browser behaviour | Vue Composition API | Reuse starter-kit components and Wayfinder-generated route functions |
 | CSS | Tailwind CSS `^4.1` + shadcn-vue components | Preserve workflows before visual redesign |
 | Static analysis | Larastan/PHPStan | Start with no new baseline debt; ratchet upward |
@@ -210,7 +219,9 @@ Laravel Boost will be installed immediately after the skeleton and its generated
 
 - Controllers translate HTTP requests into application calls and responses; they do not calculate balances or membership eligibility.
 - Form Request objects own input validation and normalisation.
-- Policies and gates own user-facing authorisation. Device/provider endpoints use explicit authentication middleware.
+- Spatie Laravel Permission stores roles and permissions and registers abilities with Laravel's gate; Laravel policies own resource/action authorization. Device/provider endpoints use explicit authentication middleware.
+- Filament panel access requires an explicit permission through `canAccessPanel()`. Filament resource/action visibility never substitutes for policy authorization.
+- The Filament administration panel and Inertia member application share the same `User` model and `web` guard; do not create a second administrator identity or role store.
 - Browser routes, machine/device routes, and provider webhooks live in separate route files/groups with distinct middleware.
 - Browser state changes use POST/PUT/PATCH/DELETE and request-forgery protection. Logout is POST.
 - Route names and externally consumed paths are captured in `docs/parity/routes.md`.
@@ -326,7 +337,7 @@ Tasks:
 - Create a structure-only schema baseline under `database/schema/` for new development/test databases. Do not copy production rows.
 - Retain the legacy migration history as documentation, not executable Laravel 13 migrations.
 - Create only new, forward migrations after the agreed baseline timestamp.
-- Map all 20 legacy entities to explicit Laravel 13 models, beginning with users, roles, profiles, addresses, payments, subscription charges, key fobs, equipment, and equipment logs.
+- Map legacy business entities to explicit Laravel 13 models, beginning with users, profiles, addresses, payments, subscription charges, key fobs, equipment, and equipment logs. Treat legacy roles and assignments as migration input for Spatie Laravel Permission rather than a parallel application role model.
 - Add casts for dates, booleans, JSON/serialised fields, and values whose legacy representation is surprising.
 - Build factories with named legacy states.
 - Add read-only smoke tests against the sanitised snapshot.
@@ -350,8 +361,10 @@ Tasks:
 - Map legacy users into Fortify-compatible accounts while preserving existing password hashes; prove representative hashes authenticate without resets.
 - Map the legacy verification state into `email_verified_at`, and leave 2FA/passkeys unenrolled until each member opts in.
 - Verify secure logout, session regeneration, login throttling, registration, password reset, email verification, password confirmation, 2FA, and passkey flows.
-- Map roles and role membership; implement policies for self, member, communications, finance, and admin access.
-- Implement current-user account view and a read-only admin member view.
+- Install and configure the current Laravel 13-compatible `spatie/laravel-permission` major; define the approved permission matrix, then import and reconcile legacy roles and assignments into the package schema.
+- Implement policies for self, member, communications, finance, and administrator access using Spatie-backed abilities; direct role-name checks outside the permission boundary are prohibited.
+- Install the current Laravel 13-compatible Filament panel builder and require an explicit panel-access permission through `canAccessPanel()`.
+- Implement the current-user account view in Inertia and a read-only administrator member resource in Filament.
 - Implement member directory privacy rules and profile-photo authorisation.
 - Implement member status enums/transitions as read behaviour first.
 - Add audit events for login, password reset, permission denial, and privileged member access without logging credentials or emergency-contact content.
@@ -362,6 +375,8 @@ Acceptance:
 - Existing accounts can authenticate from the snapshot.
 - A member cannot read or change another member's protected data.
 - Finance/comms/admin permissions match the approved role matrix.
+- Filament panel entry and every resource/action are denied without the required permission and policy result.
+- Reconciled counts and assignments prove that every retained legacy role membership was imported exactly once.
 - Security tests cover CSRF, session fixation, brute-force throttling, and open redirects.
 
 ### Milestone 4 — Member lifecycle and self-service
@@ -594,7 +609,7 @@ The product owner must classify features before implementation. Proposed default
 
 | Priority | Definition | Candidate scope |
 |---|---|---|
-| P0 | Required for safe cutover | Login/reset/logout; roles/policies; account/profile/privacy; member status; payment/charges/balance; retained provider webhooks; access/fobs; scheduler/workers; reconciliation |
+| P0 | Required for safe cutover | Login/reset/logout; Spatie roles/permissions and Filament administration required for operations; account/profile/privacy; member status; payment/charges/balance; retained provider webhooks; access/fobs; scheduler/workers; reconciliation |
 | P1 | Required shortly after or included if schedule permits | Signup; inductions; equipment/session fees; expenses; storage boxes; member directory; notifications; finance UI |
 | P2 | Can follow first release | Proposals, statement import, realtime activity, expanded stats, API docs |
 | Retire/replace | No parity required | Unused Slack paths, old Stripe Checkout, unsupported PayPal IPN, obsolete analytics/Google+, old log viewer/debug UI, CCTV GIF if unused |
@@ -634,7 +649,8 @@ Ticket size guide: S is usually 1–2 focused engineering days, M is 3–5, L is
 |---|---|---:|---|
 | ID-001 | Authenticate legacy password hashes | M | Representative snapshot accounts pass tests |
 | ID-002 | Implement secure session/logout/reset/throttling | M | Security feature/browser suite passes |
-| ID-003 | Implement role matrix with policies | L | Approved permission matrix passes |
+| ID-003 | Install Spatie Laravel Permission and migrate the approved role matrix | L | Legacy assignments reconcile and policy/permission tests pass |
+| ID-004 | Establish the Filament administration panel and access boundary | M | Only permitted users enter the panel and a read-only member resource passes policy/browser tests |
 | MEM-001 | Implement member/account read models | M | Self/admin/member privacy scenarios pass |
 | MEM-002 | Implement profile/address/privacy editing | L | Validation, audit, upload, auth tests pass |
 | MEM-003 | Implement member state machine | L | All legal/illegal transitions are covered |
@@ -866,11 +882,13 @@ The longest-lead unknowns are likely provider account/API decisions, hardware/de
 2. Required/retired status for PayPal, both GoCardless generations, Stripe, Pusher, Slack, CCTV/GIF, Spark, Swagger, analytics, and log/debug viewers.
 3. First-release feature priority: P0/P1/P2.
 4. Existing database compatibility versus a planned transformed schema. This plan recommends compatibility for release one.
-5. ~~Frontend direction.~~ Resolved 17 August 2026: official Laravel Inertia 3 + Vue 3 + TypeScript starter kit, Tailwind 4, and shadcn-vue components.
+5. ~~Member-facing frontend direction.~~ Resolved 17 August 2026: official Laravel Inertia 3 + Vue 3 + TypeScript starter kit, Tailwind 4, and shadcn-vue components.
 6. CI, staging, production hosting, queue, cache/session, monitoring, and secret-management platforms.
 7. Device upgrade constraints and supported parallel protocol window.
 8. Cutover downtime, recovery-time objective, recovery-point objective, and rollback period.
 9. Data retention/privacy requirements and who may handle sanitised snapshots.
 10. Named membership, finance, access, technical, and client sign-off owners.
+
+Resolved 18 August 2026: Spatie Laravel Permission will own roles/permissions, and Filament will provide the privileged administration panel without replacing the Inertia member application. See ADRs 0001 and 0002.
 
 No unresolved decision may be filled with a convenient technical assumption if it changes member entitlement, money, physical access, data privacy, or cutover safety.

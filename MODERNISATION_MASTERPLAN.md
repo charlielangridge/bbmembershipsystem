@@ -5,7 +5,7 @@ Audit date: 17 August 2026
 Repository baseline: `d686bf6d40ea39dd0493d787d4982909e3330fb2` (1 April 2024)
 Scope: Laravel, PHP and JavaScript dependencies, tests, application code, data safety, security, delivery, and operations
 
-> **Approved strategy update — 17 August 2026:** The client selected direct implementation from Phase 5 using a clean Laravel 13 skeleton. The fragile hosted system will remain unchanged and serve only as a read-only behavioural/data reference until cutover. The approved foundation uses the official Inertia 3/Vue 3/TypeScript starter kit, Pest 5, and Brick/Money with integer-pence persistence. The execution plan is [LARAVEL_13_IMPLEMENTATION_PLAN.md](LARAVEL_13_IMPLEMENTATION_PLAN.md); it supersedes earlier sequencing and stack recommendations.
+> **Approved strategy update — 18 August 2026:** The client selected direct implementation from Phase 5 using a clean Laravel 13 skeleton. The fragile hosted system will remain unchanged and serve only as a read-only behavioural/data reference until cutover. The approved foundation uses the official Inertia 3/Vue 3/TypeScript starter kit for the member application, Filament for privileged administration, Spatie Laravel Permission with Laravel policies, Pest 5, and Brick/Money with integer-pence persistence. The execution plan is [LARAVEL_13_IMPLEMENTATION_PLAN.md](LARAVEL_13_IMPLEMENTATION_PLAN.md); it supersedes earlier sequencing and stack recommendations.
 
 ## Executive summary
 
@@ -18,6 +18,7 @@ The recommended destination is:
 - Pest 5 as the authored PHP test stack.
 - Node.js 24 LTS, Vite, and one package manager.
 - Inertia 3, Vue 3, TypeScript, Tailwind 4, and the official Laravel Vue starter-kit conventions.
+- Filament for privileged administration, with Spatie Laravel Permission and Laravel policies as the authorization boundary.
 - Reproducible local, CI, staging, and production environments.
 - Supported payment, storage, mail, logging, and realtime integrations.
 
@@ -335,7 +336,7 @@ Work order:
 5. Port authentication while preserving existing password hashes and remember-token semantics. Use modern password reset, email verification decisions, session regeneration, and login throttling.
 6. Split routes into `routes/web.php`, `routes/api.php`, and versioned machine/provider route groups. Preserve names and paths through parity tests.
 7. Replace route/controller string references, old middleware registration, old exception signatures, legacy request/input facades, old event dispatch, mail APIs, helpers, factories, and model date/mutator APIs.
-8. Port authorisation to policies/gates, leaving temporary compatibility shims only where covered and scheduled for removal.
+8. Import legacy roles and assignments into Spatie Laravel Permission, then port authorization to policies/gates; leave temporary compatibility shims only where covered and scheduled for removal.
 9. Port console commands and schedules. Replace inline HTTP heartbeat callbacks with supported scheduler hooks/monitoring and test timezone/overlap/on-one-server behaviour.
 10. Port views and mailables without redesigning pages. Add compatibility tests for escaping and links.
 11. Port one business slice at a time in this order: read-only/public pages; authentication/profile; roles/inductions/storage/proposals; equipment; access control; expenses/credit; subscriptions/payments; scheduled billing.
@@ -387,12 +388,13 @@ Exit gate:
 
 Goal: replace the unsupported build and browser stack without turning the framework upgrade into a redesign.
 
-Approved default: the official Laravel Inertia 3 + Vue 3 + TypeScript starter kit with Tailwind 4 and shadcn-vue components. The source JavaScript is only about 1,182 lines; rebuild each workflow as a tested Vue page/component rather than carrying forward React 0.13, Backbone, or Bootstrap 3.
+Approved boundary: the official Laravel Inertia 3 + Vue 3 + TypeScript starter kit with Tailwind 4 and shadcn-vue components owns public/member journeys. Filament owns privileged administration. The source JavaScript is only about 1,182 lines; rebuild retained member workflows as tested Vue pages/components and retained administrative workflows as policy-protected Filament resources/pages rather than carrying forward React 0.13, Backbone, or Bootstrap 3.
 
 Work:
 
 - Pin Node 24 LTS and choose npm; remove `yarn.lock` only in the same change that introduces the replacement lock file.
-- Use the starter kit's Vite, Inertia, Vue, TypeScript, Wayfinder, Tailwind, and component conventions. Build hashed assets from the single Inertia root layout.
+- Use the starter kit's Vite, Inertia, Vue, TypeScript, Wayfinder, Tailwind, and component conventions. Build member assets from the single Inertia root layout; keep Filament/Livewire assets and components inside the administration boundary.
+- Use Filament resources, pages, actions, and widgets only for privileged administration; share the Fortify user identity and enforce Spatie-backed Laravel policies.
 - Port LESS to supported Sass/CSS or plain CSS. Preserve visual behaviour before restyling.
 - Inventory and replace the widget set: payment form, notification table/count, expense list/modal/count, filterable payment table, feedback/snackbar, date picker, and Select2 fields.
 - Replace legacy Stripe Checkout first because it is a payment-flow migration, not merely UI work.
@@ -416,7 +418,7 @@ Work in small vertical slices:
 - Introduce PHP strict types for new/refactored modules, scalar/return types, constructor property promotion where useful, `final` by default for leaf services, and readonly value objects where appropriate.
 - Replace string statuses with backed enums while keeping database values stable. Candidate enums: member status, payment status/source/reason, equipment-log status, proposal status, and notification type.
 - Use `Brick\Money\Money` for arithmetic and domain/API boundaries. Construct GBP values from minor units with `Money::ofMinor()`, persist signed integers in explicitly named `_pence` columns, and never use binary floats. Migrate legacy `DOUBLE` columns only in a separately rehearsed and reconciled data change.
-- Replace `User::findWithPermission()` and model-level `Auth` access with policies and explicit current-user inputs.
+- Replace `User::findWithPermission()` and model-level `Auth` access with Spatie-backed policies and explicit current-user inputs.
 - Extract application actions such as `RecordPayment`, `ApplyPaymentToSubscription`, `ChangeMemberStatus`, `AuthoriseAccess`, `StartEquipmentSession`, and `ApproveExpense`.
 - Put multi-record transitions inside database transactions. Dispatch external side effects after commit and make handlers retry-safe.
 - Replace legacy string events with typed events carrying immutable IDs/value data rather than live models when queueing.
@@ -523,13 +525,13 @@ These are independently trackable outcomes, not one giant upgrade ticket:
 | M04 Security containment | CSRF, logout, secrets, public endpoints, keys, uploads hardened | M02–M03 |
 | M05 Provider adapters | Payment/device/storage/media/realtime SDKs isolated | M03 |
 | M06 Laravel 13 foundation | Clean skeleton, PHP 8.4, config, CI, database connection | M01–M03 |
-| M07 Identity and member slice | Auth, accounts, profiles, roles, policies | M04, M06 |
+| M07 Identity and member slice | Auth, accounts, profiles, Spatie roles/permissions, policies, Filament admin boundary | M04, M06 |
 | M08 Community operations slice | Inductions, groups, storage, proposals, notifications | M07 |
 | M09 Equipment and access slice | ACS, fobs, equipment sessions/fees, device contracts | M05–M08 |
 | M10 Finance slice | Expenses, credit, subscriptions, payments, reconciliation | M05–M08 |
 | M11 Scheduler and async slice | Commands, queues, retry/idempotency, monitoring | M09–M10 |
 | M12 Test consolidation | Pest 5 only; static analysis and browser smoke suite | M07–M11 |
-| M13 Frontend/Vite | Inertia Vue pages and supported widget replacements | M06–M10 |
+| M13 Frontend/admin UI | Inertia Vue member pages, Filament administration, and supported widget replacements | M06–M10 |
 | M14 Data integrity | Schema drift resolved; constraints/indexes/money plan | M03, M10 |
 | M15 Delivery and operations | Immutable deploy, alerts, runbooks, restore | M06, M11, M14 |
 | M16 Cutover and retirement | Production on modern stack; legacy revoked | All prior |
@@ -584,7 +586,7 @@ These questions should be answered during Phase 0; none should be guessed from t
 5. Which API/device clients cannot be upgraded simultaneously, and what version-negotiation window is required?
 6. Is brief maintenance acceptable for cutover, or is dual-running/routing required?
 7. What are the retention and privacy requirements for member, payment, access, emergency-contact, expense, and CCTV data?
-8. Which legacy visual details may change while workflows are rebuilt in the approved Inertia Vue stack?
+8. Which legacy visual details may change while member workflows are rebuilt in Inertia Vue and administrative workflows are rebuilt in Filament?
 9. Which CI/deployment/monitoring platforms are organisational standards?
 10. Who signs off reconciled money, membership entitlement, and physical-access results?
 
@@ -602,6 +604,8 @@ Current target decisions should be rechecked when implementation begins:
 - [Pest installation and upgrade guidance](https://pestphp.com/docs/installation)
 - [Laravel Vue starter kit](https://github.com/laravel/vue-starter-kit)
 - [Brick/Money](https://github.com/brick/money)
+- [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission/v8/introduction)
+- [Filament 5](https://filamentphp.com/docs/5.x/getting-started)
 - [Stripe legacy Checkout migration guide](https://docs.stripe.com/payments/checkout/migration)
 
 When executing an in-place framework step or porting a legacy behaviour, consult every intervening official Laravel upgrade guide and compare the corresponding `laravel/laravel` skeleton. The short Laravel 12-to-13 estimate does not apply to this Laravel 5.1 application.
