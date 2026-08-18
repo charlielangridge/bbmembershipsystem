@@ -60,7 +60,7 @@ Major functional areas found in code are:
 
 ### 1.2 Runtime and dependency baseline
 
-Product direction recorded on 18 August 2026 requires parity for every inventoried legacy capability. Historical direct-debit migration, PayPal payments/donations, CCTV capture, Discord status notifications, Swagger/API documentation, and secure log viewing are the final tranche: begin them only after all other parity work is accepted. Preserve their business outcomes with supported implementations rather than retaining obsolete packages or unsafe protocols.
+Product direction recorded on 18 August 2026 requires parity for every inventoried legacy capability before production cutover; see [ADR 0003](docs/adr/0003-require-full-parity-before-cutover.md). Historical direct-debit migration, PayPal payments/donations, CCTV capture, Discord status notifications, Swagger/API documentation, and secure log viewing are the final tranche: begin them only after all other parity work is accepted, then complete them before cutover. Preserve their business outcomes with supported implementations rather than retaining obsolete packages or unsafe protocols.
 
 | Concern | Current repository state | Modernisation implication |
 |---|---|---|

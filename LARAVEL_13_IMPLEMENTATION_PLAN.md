@@ -11,6 +11,7 @@ Canonical repository: [charlielangridge/bbmembershipsystem](https://github.com/c
 
 - Spatie Laravel Permission is the authoritative role/permission implementation; see [ADR 0001](docs/adr/0001-use-spatie-laravel-permission.md).
 - Filament is the privileged administration panel, while Inertia Vue remains the member-facing application; see [ADR 0002](docs/adr/0002-use-filament-for-administration.md).
+- All parity-ledger capabilities must be complete before production cutover, with P3 implemented last; see [ADR 0003](docs/adr/0003-require-full-parity-before-cutover.md).
 
 ### Foundation checkpoint — 17 August 2026
 
@@ -41,7 +42,7 @@ This is the agreed pause point. No legacy business logic, schema, integrations, 
 | Money foundation | Complete as a technical decision | Brick/Money is installed and the application rule is integer pence for stored GBP values, never floats. Legacy column units, rounding rules, models, and finance workflows are not yet mapped. |
 | Continuous integration | Complete | A clean GitHub runner passed the full quality job in run 32068268290 on commit `fce6655`. Branch-protection policy remains an administrative repository task. |
 | Local production-like services | Pending | The selected MySQL/MariaDB version, queue/cache/session services, mail catcher, object storage, and developer bootstrap still need production-inventory decisions and configuration. |
-| Parity and data discovery | In progress; feature disposition complete | All 47 candidate-revision features are required in `docs/parity/features.md`; the six rows representing five grouped areas are confirmed as the final P3 tranche. The eight candidate-source schedules are inventoried in `docs/parity/commands.md`. P0/P1/P2 assignments, deployed-baseline confirmation, named owners, route/status/integration ledgers, production schema evidence, and a sanitised snapshot remain required. |
+| Parity and data discovery | In progress; feature scope/order approved | Charlie Langridge approved all 47 candidate-revision features and their P0–P3 implementation order in `docs/parity/features.md`; every capability must complete before cutover. Candidate-source schedules and state machines are inventoried in `docs/parity/commands.md` and `docs/parity/statuses.md`. Deployed-baseline confirmation, named domain owners, route/integration ledgers, production reconciliation, schema evidence, and a sanitised snapshot remain required. |
 | Staging, observability, and deployment | Not started | Automated staging deployment/rollback, monitoring decisions, runbooks, and evidence remain required before Milestone 1 can be accepted. |
 | Business logic and external integrations | Not started | Membership, finance, access control, equipment, payment providers, scheduled jobs, and legacy device contracts remain in Milestones 2–9. |
 
@@ -512,6 +513,7 @@ Tasks:
 - In the P3 tranche, publish the required API documentation as an OpenAPI 3 contract generated and validated in CI.
 - Add CSP and other browser security headers after external origins are final.
 - Add browser smoke tests and accessibility checks for all P0 journeys.
+- After every P0–P2 capability is accepted, complete the required P3 final parity tranche before the full-system staging rehearsal.
 
 Acceptance:
 
@@ -519,6 +521,7 @@ Acceptance:
 - A clean `npm ci && npm run build` produces deployable assets.
 - Required mail, storage, image, realtime, and monitoring integrations pass staging tests.
 - P0 screens meet agreed functional and accessibility acceptance.
+- Every P0–P3 capability is implemented before the staging and cutover milestones begin.
 
 ### Milestone 10 — Full-system staging and migration rehearsal
 
@@ -594,7 +597,7 @@ Tasks:
 - Revoke legacy provider/device/deployment credentials and remove old webhook URLs.
 - Remove the unsupported runtime/images/cron/workers after the rollback period.
 - Archive approved logs and configuration evidence under retention policy.
-- After every P0–P2 item is accepted, deliver the P3 direct-debit migration, PayPal, CCTV, Discord, Swagger, and log-viewing parity items before closing the ledger; move only new redesign/product work to a later roadmap.
+- Close the already-delivered parity ledger after post-cutover evidence is accepted; move only new redesign/product work to a later roadmap.
 
 Acceptance:
 
@@ -605,14 +608,14 @@ Acceptance:
 
 ## 9. Feature priority and release slices
 
-The product owner must classify features before implementation. Proposed defaults:
+Charlie Langridge approved this implementation order on 18 August 2026:
 
 | Priority | Definition | Candidate scope |
 |---|---|---|
-| P0 | Required for safe cutover | Login/reset/logout; Spatie roles/permissions and Filament administration required for operations; account/profile/privacy; member status; payment/charges/balance; retained provider webhooks; access/fobs; scheduler/workers; reconciliation |
-| P1 | Required shortly after or included if schedule permits | Signup; inductions; equipment/session fees; expenses; storage boxes; member directory; notifications; finance UI |
-| P2 | Remaining core parity; complete before the final tranche | Proposals, statement import, realtime activity, expanded stats, feedback |
-| P3 | Required final parity tranche; starts only after all P0–P2 items are accepted | Historical direct-debit migration; supported PayPal payment/donation replacement; CCTV capture; Discord status notifications; OpenAPI/Swagger UI; secure log viewing |
+| P0 | Implement first: cutover-critical foundations and workflows | Login/reset/logout; Spatie roles/permissions and Filament administration required for operations; account/profile/privacy; member status; payment/charges/balance; provider webhooks; access/fobs; scheduler/workers; reconciliation |
+| P1 | Implement after P0: remaining essential operational/member workflows | Signup; inductions; equipment/session fees; expenses; storage boxes; member directory; notifications; finance UI |
+| P2 | Implement after P1: remaining core parity | Proposals, statement import, realtime activity, expanded stats, feedback |
+| P3 | Implement last, after all P0–P2 acceptance and before cutover | Historical direct-debit migration; supported PayPal payment/donation replacement; CCTV capture; Discord status notifications; OpenAPI/Swagger UI; secure log viewing |
 | Replace implementation | Preserve the outcome without preserving obsolete internals | Old Stripe Checkout, unsupported PayPal IPN SDK, legacy Pusher/GIF/Swagger/log-viewer packages, obsolete analytics/Google+ |
 
 Do not infer that a feature is unused because calls are commented out. Any future retirement proposal requires client and operational confirmation and an explicit update to the parity ledger.
@@ -880,8 +883,8 @@ The longest-lead unknowns are likely provider account/API decisions, hardware/de
 ## 17. Decisions to close before Milestone 1 ends
 
 1. Exact production commit, database engine/version, PHP/runtime, hosting, and deployment source.
-2. ~~Required/retired status for PayPal, direct-debit migration, CCTV/GIF, Discord, Swagger, and log/debug viewers.~~ Resolved 18 August 2026: all are required P3 items delivered only after P0–P2 acceptance, using supported replacement implementations where needed.
-3. ~~Feature priority model: P0/P1/P2.~~ Resolved 18 August 2026: P0–P2 deliver core parity; P3 is the required final parity tranche.
+2. ~~Required/retired status for PayPal, direct-debit migration, CCTV/GIF, Discord, Swagger, and log/debug viewers.~~ Resolved 18 August 2026: all are required P3 items delivered after P0–P2 acceptance and before production cutover, using supported replacement implementations where needed.
+3. ~~Feature priority model and cutover boundary.~~ Resolved 18 August 2026: the ledger's P0–P2 assignments are approved; P3 is the required final tranche; all P0–P3 capabilities complete before production cutover.
 4. Existing database compatibility versus a planned transformed schema. This plan recommends compatibility for release one.
 5. ~~Member-facing frontend direction.~~ Resolved 17 August 2026: official Laravel Inertia 3 + Vue 3 + TypeScript starter kit, Tailwind 4, and shadcn-vue components.
 6. CI, staging, production hosting, queue, cache/session, monitoring, and secret-management platforms.

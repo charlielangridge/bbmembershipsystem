@@ -1,29 +1,29 @@
 # Legacy Feature Parity Ledger
 
-Status: feature dispositions and final-tranche order confirmed; core priorities, deployed baseline, and named owners pending
+Status: feature dispositions, priorities, owner authority, and pre-cutover order confirmed; deployed baseline and named domain owners pending
 Evidence date: 18 August 2026
 Evidence revision: legacy `master` at `d686bf6`
 
 ## Purpose
 
-This ledger inventories behaviour visible in the legacy repository. Product direction on 18 August 2026 requires feature parity for every inventoried capability. Five grouped areas—historical direct-debit migration, PayPal IPN/donations, CCTV capture, Discord notifications, and Swagger/log viewing—form the final parity tranche after every P0–P2 item is accepted.
+This ledger inventories behaviour visible in the legacy repository. Product direction on 18 August 2026 requires feature parity for every inventoried capability before production cutover. Five grouped areas—historical direct-debit migration, PayPal IPN/donations, CCTV capture, Discord notifications, and Swagger/log viewing—form the final parity tranche after every other capability is accepted but still before cutover.
 
 The evidence revision is the current Git `master` tip, not a confirmed production baseline. `NEW-001` must confirm the deployed commit before this inventory can be treated as complete production evidence. Runtime configuration, provider dashboards, device versions, production data, and operator interviews may reveal additional behaviour.
 
 ## Decision vocabulary
 
-- `required` — preserve the business outcome or external contract before the parity ledger and modernisation programme can close; the assigned priority determines whether delivery is before or after initial cutover.
+- `required` — preserve the business outcome or external contract before production cutover.
 - `changed` — deliver an explicitly approved replacement or deliberate difference.
 - `retired` — omit only with named owner approval and evidence that no required workflow or client depends on it.
 - `pending` — no owner decision has been recorded.
 
-The P0/P1/P2 values below are proposed defaults awaiting product-owner approval. P3 is confirmed for the five grouped areas explicitly deferred until every other required capability is accepted. Required business outcomes and contracts may use supported replacement implementations; feature parity does not require obsolete packages or unsafe protocols.
+The P0/P1/P2 values below are the approved implementation order. P3 is the confirmed final tranche, implemented after every other required capability but before production cutover. Required business outcomes and contracts may use supported replacement implementations; feature parity does not require obsolete packages or unsafe protocols.
 
 ## Sign-off owners
 
 | Area | Owner | Status |
 | --- | --- | --- |
-| Client/product | Unassigned | Pending |
+| Client/product | Charlie Langridge | Approved 18 August 2026 |
 | Membership | Unassigned | Pending |
 | Finance | Unassigned | Pending |
 | Physical access | Unassigned | Pending |
@@ -33,7 +33,7 @@ The P0/P1/P2 values below are proposed defaults awaiting product-owner approval.
 
 ## Feature inventory
 
-| ID | Feature area | Legacy evidence | Proposed boundary from plan | Decision | Proposed priority / confirmed order | Sign-off owner | Notes/questions |
+| ID | Feature area | Legacy evidence | Approved boundary | Decision | Priority | Sign-off owner | Notes/questions |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | APP-01 | Home page and authenticated dashboard | `/`, `HomeController::index`, `home.blade.php`, homepage tests | Member-facing Inertia journey | required | P1 | Client/product | Confirm the public and authenticated content/actions required at the root route. |
 | AUTH-01 | Login, logout, password reset, and session handling | `SessionController`, `ReminderController`, `routes.php`, login tests | Fortify replacement already selected | required | P0 | Client/product + technical | Confirm legacy password compatibility separately under `ID-001`; retain Fortify rather than legacy controllers. |
@@ -97,7 +97,7 @@ The P0/P1/P2 values below are proposed defaults awaiting product-owner approval.
 - [ ] Confirm the deployed legacy revision through `NEW-001` and reconcile this inventory against it.
 - [ ] Name every sign-off owner.
 - [x] Record `required`, `changed`, or `retired` for every row.
-- [ ] Approve the proposed P0/P1/P2 assignments for core parity rows.
+- [x] Approve the P0/P1/P2 assignments for core parity rows.
 - [x] Assign the six rows representing the five deferred areas to the confirmed final P3 tranche.
 - [ ] Record evidence for any retirement decision.
 - [x] Obtain client/product-owner direction on feature disposition and ordering.
