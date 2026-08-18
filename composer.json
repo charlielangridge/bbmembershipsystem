@@ -16,7 +16,7 @@
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "laravel/wayfinder": "^0.1.14"
+        "laravel/wayfinder": "dev-next"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -66,7 +66,7 @@
             "Composer\\Config::disableProcessTimeout",
             "composer audit --locked",
             "npm audit --audit-level=high",
-            "@php artisan wayfinder:generate --with-form --no-interaction",
+            "@php artisan wayfinder:generate --no-interaction",
             "npm run lint:check",
             "npm run format:check",
             "npm run types:check",
