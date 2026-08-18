@@ -542,7 +542,7 @@ Tasks:
 
 Acceptance:
 
-- All P0/P1 parity items are accepted or have a signed deliberate difference.
+- All P0–P3 parity items are accepted or have a Charlie Langridge-approved implementation difference that preserves the business outcome or external contract.
 - Migration duration and downtime fit the agreed window.
 - Reconciliation is signed off by technical, finance, membership, and access owners.
 - Rollback succeeds within the agreed recovery objective.
