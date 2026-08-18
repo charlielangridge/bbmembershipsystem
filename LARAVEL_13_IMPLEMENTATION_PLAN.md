@@ -41,7 +41,7 @@ This is the agreed pause point. No legacy business logic, schema, integrations, 
 | Money foundation | Complete as a technical decision | Brick/Money is installed and the application rule is integer pence for stored GBP values, never floats. Legacy column units, rounding rules, models, and finance workflows are not yet mapped. |
 | Continuous integration | Complete | A clean GitHub runner passed the full quality job in run 32068268290 on commit `fce6655`. Branch-protection policy remains an administrative repository task. |
 | Local production-like services | Pending | The selected MySQL/MariaDB version, queue/cache/session services, mail catcher, object storage, and developer bootstrap still need production-inventory decisions and configuration. |
-| Parity and data discovery | In progress | The legacy feature inventory is drafted in `docs/parity/features.md` against candidate revision `d686bf6`; deployed-baseline confirmation, owner assignments, disposition decisions, remaining ledgers, production schema evidence, and a sanitised snapshot are still required. |
+| Parity and data discovery | In progress; feature direction complete | All 47 candidate-revision features are required and prioritised in `docs/parity/features.md`; the six rows representing five grouped P3 areas start only after P0–P2 acceptance. Deployed-baseline confirmation, named owner assignments, remaining ledgers, production schema evidence, and a sanitised snapshot are still required. |
 | Staging, observability, and deployment | Not started | Automated staging deployment/rollback, monitoring decisions, runbooks, and evidence remain required before Milestone 1 can be accepted. |
 | Business logic and external integrations | Not started | Membership, finance, access control, equipment, payment providers, scheduled jobs, and legacy device contracts remain in Milestones 2–9. |
 
@@ -490,7 +490,7 @@ Provider-specific direction:
 
 - GoCardless: move all active mandate/payment/subscription behaviour to the current supported SDK/API and webhook model. Map legacy mandate/subscription IDs without changing them blindly.
 - Stripe: replace legacy Checkout.js token/Charges flow with server-created Checkout Sessions or PaymentIntents and signed webhook completion. Do not mark a payment paid solely because the browser returned.
-- PayPal: if still required, replace Merchant SDK/IPN with the supported Checkout/webhook flow. If only historical, keep records readable and retire new PayPal payments.
+- PayPal: preserve payment/donation outcomes in the final P3 parity tranche, replace Merchant SDK/IPN with the supported Checkout/webhook flow, and keep historical records readable.
 
 Acceptance:
 
@@ -508,8 +508,8 @@ Tasks:
 - Complete public and member-facing journeys in the Inertia 3/Vue 3/TypeScript application using reusable Vue and shadcn-vue components; keep their Blade usage to the single Inertia root view unless a server-rendered exception is approved. Implement privileged administration with Filament resources/pages and Filament's framework-managed views.
 - Replace legacy React/Backbone widgets for notifications, expenses, payment filtering/forms, feedback, date selection, and snackbars.
 - Upgrade/replace image processing, S3 access, broadcasting/realtime, mail, error reporting, and Markdown rendering.
-- Retire unused Slack, CCTV GIF, Pusher realtime, Swagger UI, analytics, and debug tooling only where the feature ledger approves retirement.
-- If API documentation remains required, publish an OpenAPI 3 contract generated/validated in CI.
+- Replace legacy CCTV GIF handling, Pusher realtime, Swagger UI, and log/debug viewing with supported implementations at the priority assigned by the feature ledger; remove obsolete packages only after their required outcomes have replacements.
+- In the P3 tranche, publish the required API documentation as an OpenAPI 3 contract generated and validated in CI.
 - Add CSP and other browser security headers after external origins are final.
 - Add browser smoke tests and accessibility checks for all P0 journeys.
 
@@ -594,7 +594,7 @@ Tasks:
 - Revoke legacy provider/device/deployment credentials and remove old webhook URLs.
 - Remove the unsupported runtime/images/cron/workers after the rollback period.
 - Archive approved logs and configuration evidence under retention policy.
-- Close the parity ledger and move deferred redesign/product work to a new roadmap.
+- After every P0–P2 item is accepted, deliver the P3 direct-debit migration, PayPal, CCTV, Discord, Swagger, and log-viewing parity items before closing the ledger; move only new redesign/product work to a later roadmap.
 
 Acceptance:
 
@@ -611,10 +611,11 @@ The product owner must classify features before implementation. Proposed default
 |---|---|---|
 | P0 | Required for safe cutover | Login/reset/logout; Spatie roles/permissions and Filament administration required for operations; account/profile/privacy; member status; payment/charges/balance; retained provider webhooks; access/fobs; scheduler/workers; reconciliation |
 | P1 | Required shortly after or included if schedule permits | Signup; inductions; equipment/session fees; expenses; storage boxes; member directory; notifications; finance UI |
-| P2 | Can follow first release | Proposals, statement import, realtime activity, expanded stats, API docs |
-| Retire/replace | No parity required | Unused Slack paths, old Stripe Checkout, unsupported PayPal IPN, obsolete analytics/Google+, old log viewer/debug UI, CCTV GIF if unused |
+| P2 | Remaining core parity; complete before the final tranche | Proposals, statement import, realtime activity, expanded stats, feedback |
+| P3 | Required final parity tranche; starts only after all P0–P2 items are accepted | Historical direct-debit migration; supported PayPal payment/donation replacement; CCTV capture; Discord status notifications; OpenAPI/Swagger UI; secure log viewing |
+| Replace implementation | Preserve the outcome without preserving obsolete internals | Old Stripe Checkout, unsupported PayPal IPN SDK, legacy Pusher/GIF/Swagger/log-viewer packages, obsolete analytics/Google+ |
 
-Do not infer that a feature is unused because calls are commented out. Retirement requires client and operational confirmation.
+Do not infer that a feature is unused because calls are commented out. Any future retirement proposal requires client and operational confirmation and an explicit update to the parity ledger.
 
 ## 10. Initial ticket backlog
 
@@ -681,7 +682,7 @@ Ticket size guide: S is usually 1–2 focused engineering days, M is 3–5, L is
 | PAY-001 | Implement durable provider webhook inbox | M | Duplicate/replay/failure lifecycle passes |
 | PAY-002 | Implement current GoCardless adapter | L | Sandbox and reconciliation pass |
 | PAY-003 | Implement current Stripe flow | L | Checkout/PaymentIntent webhook E2E passes |
-| PAY-004 | Implement or formally retire PayPal | L/S | Approved flow passes or route is absent with history readable |
+| PAY-004 | Implement the supported P3 PayPal replacement | L | Payment/donation outcomes pass against the supported API and historical records remain readable |
 
 ### Release readiness
 
@@ -865,7 +866,7 @@ The longest-lead unknowns are likely provider account/API decisions, hardware/de
 
 - The clean Laravel 13 application is the only production application, worker, scheduler, and webhook processor.
 - PHP 8.4, Node 24, Composer/npm lock files, CI, staging, and production deployment are reproducible.
-- Every P0/P1 parity item is accepted or has a client-approved difference.
+- Every required P0–P3 parity item is accepted or has a client-approved implementation difference that preserves its business outcome or external contract.
 - Existing passwords, member data, provider identifiers, object keys, and required machine contracts remain usable.
 - Financial, membership, access, device, provider, and scheduler invariants pass automated tests.
 - Fresh databases and production-like snapshot upgrades both pass.
@@ -879,8 +880,8 @@ The longest-lead unknowns are likely provider account/API decisions, hardware/de
 ## 17. Decisions to close before Milestone 1 ends
 
 1. Exact production commit, database engine/version, PHP/runtime, hosting, and deployment source.
-2. Required/retired status for PayPal, both GoCardless generations, Stripe, Pusher, Slack, CCTV/GIF, Spark, Swagger, analytics, and log/debug viewers.
-3. First-release feature priority: P0/P1/P2.
+2. ~~Required/retired status for PayPal, direct-debit migration, CCTV/GIF, Discord, Swagger, and log/debug viewers.~~ Resolved 18 August 2026: all are required P3 items delivered only after P0–P2 acceptance, using supported replacement implementations where needed.
+3. ~~Feature priority model: P0/P1/P2.~~ Resolved 18 August 2026: P0–P2 deliver core parity; P3 is the required final parity tranche.
 4. Existing database compatibility versus a planned transformed schema. This plan recommends compatibility for release one.
 5. ~~Member-facing frontend direction.~~ Resolved 17 August 2026: official Laravel Inertia 3 + Vue 3 + TypeScript starter kit, Tailwind 4, and shadcn-vue components.
 6. CI, staging, production hosting, queue, cache/session, monitoring, and secret-management platforms.

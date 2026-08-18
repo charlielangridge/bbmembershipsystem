@@ -60,6 +60,8 @@ Major functional areas found in code are:
 
 ### 1.2 Runtime and dependency baseline
 
+Product direction recorded on 18 August 2026 requires parity for every inventoried legacy capability. Historical direct-debit migration, PayPal payments/donations, CCTV capture, Discord status notifications, Swagger/API documentation, and secure log viewing are the final tranche: begin them only after all other parity work is accepted. Preserve their business outcomes with supported implementations rather than retaining obsolete packages or unsafe protocols.
+
 | Concern | Current repository state | Modernisation implication |
 |---|---|---|
 | PHP | No Composer platform constraint; Travis used PHP 7.1 | Reproduce the exact legacy runtime first; target PHP 8.4 |
@@ -202,7 +204,7 @@ Work:
 
 - Name a technical owner and a business owner for membership, finance, and physical access.
 - Inventory production PHP, web server, OS, database engine/version/SQL mode, cron, queue workers, file storage, DNS/TLS, mail, cache/session, secrets, Forge/Envoyer configuration, backups, and monitoring.
-- Inventory live use of Stripe, PayPal, GoCardless legacy and current APIs, Pusher, S3, Rollbar, Slack, CCTV, Spark, ACS generations, Swagger, and heartbeat endpoints. Mark each `keep`, `replace`, or `retire`.
+- Inventory live use of Stripe, PayPal, GoCardless legacy and current APIs, Pusher, S3, Rollbar, Slack/Discord, CCTV, Spark, ACS generations, Swagger, log viewing, and heartbeat endpoints. Record the supported replacement and compatibility evidence for each required capability.
 - Export route, schedule, and schema metadata from production without exporting personal data into the repository.
 - Verify encrypted data/cookies and determine whether the committed example key was ever used. Plan key rotation rather than changing it blindly.
 - Prove database and object-storage backups restore into an isolated environment. Record restore time and rollback commands.
@@ -295,18 +297,18 @@ Goal: stop obsolete third-party APIs from leaking through the application before
 | Current package/capability | Observed use | Planned action |
 |---|---|---|
 | `illuminate/html` 5.0 | Form/HTML facades across Blade; custom sortable helpers | Replace public/member forms with Inertia Vue components and privileged administration forms/tables with Filament; retain a small tested pagination/sort helper where the member UI needs it |
-| `rap2hpoutre/laravel-log-viewer` | One admin route | Remove or replace with the selected central log platform; do not expose raw logs casually |
+| `rap2hpoutre/laravel-log-viewer` | One admin route | Replace in the final parity tranche with secure operator log access backed by the selected central log platform; do not expose unrestricted raw logs |
 | `nuovo/spreadsheet-reader` | HSBC statement import | Put parsing behind `StatementReader`; replace with a supported CSV/XLSX library after real fixture tests |
 | Intervention Image 2 | profile, equipment, expense, CCTV images | Upgrade behind an `ImageProcessor` adapter; preserve orientation, crop, encoding, and size with golden-file tests |
-| PayPal Merchant SDK | IPN subscriptions/donations | Confirm live use; migrate to a supported PayPal Checkout/webhook integration or retire |
+| PayPal Merchant SDK | IPN subscriptions/donations | Replace in the final parity tranche with a supported PayPal Checkout/webhook integration while preserving payment/donation outcomes and readable history |
 | `laracasts/presenter` | Seven presenter classes/traits | Replace member-facing presentation with Inertia resources/props and Vue components, administration presentation with Filament resources/tables where applicable, and shared domain formatting with model casts/accessors or dedicated formatters |
 | Stripe PHP 1.x / legacy Checkout | token to `Stripe_Charge::create` | Move to a current Stripe SDK and server-created Checkout Session or PaymentIntent with signed webhooks and idempotency |
 | `michelf/php-markdown` | policies, proposals, equipment help | Upgrade or replace behind a Markdown renderer; define trusted/untrusted HTML sanitisation policy |
 | `jenssegers/rollbar` | provider plus old browser snippet | Replace with the supported Rollbar Laravel integration or the chosen error platform |
 | `maknz/slack` | provider; application calls mostly commented | Remove if unused; otherwise use a maintained notification/webhook adapter |
-| `sybio/gif-creator` | CCTV GIF generation | Confirm feature use; replace behind a media adapter or retire |
+| `sybio/gif-creator` | CCTV GIF generation | Replace behind a supported media adapter in the final parity tranche while preserving CCTV capture outcomes and applying approved privacy/retention controls |
 | Flysystem/S3 v1 | member/equipment/expense/CCTV objects | Move through Laravel filesystem APIs to current Flysystem; test visibility, URLs, metadata, and existing keys |
-| Pusher PHP 2 / JS 2.2 | private member notifications and realtime activity | Upgrade through Laravel broadcasting/Echo or retire; move IDs/options to environment config |
+| Pusher PHP 2 / JS 2.2 | private member notifications and realtime activity | Replace through supported Laravel broadcasting/Echo; move IDs/options to environment config and preserve session-authorised realtime behaviour |
 | `arthurguy/notifications` | form flash/error API throughout views | Replace with Laravel session flash data, validation errors, and notifications |
 | Clockwork | provider in production requirements | Move to `require-dev`, upgrade, and register only locally, or remove |
 | Swagger PHP 2 and committed UI | ACS annotations and docs route | Move to OpenAPI 3 with a supported generator/UI, or replace with a checked-in API contract generated in CI |
@@ -580,7 +582,7 @@ The modernisation is not complete merely because the homepage renders on Laravel
 These questions should be answered during Phase 0; none should be guessed from this repository alone:
 
 1. What exact commit, PHP version, database version, and infrastructure are in production?
-2. Which integrations/features are still live: both GoCardless generations, PayPal subscriptions, Stripe, Pusher, Slack, CCTV/GIF, Spark, Swagger, Rollbar, and Clockwork?
+2. Which production configurations and clients exercise both GoCardless generations, PayPal, Stripe, Pusher, Discord, CCTV/GIF, Spark, Swagger, log viewing, Rollbar, and Clockwork? Their parity disposition is required; this evidence defines contracts, migration data, and supported replacements.
 3. Is `database/dump.sql` synthetic, and has any real member or credential data ever been committed?
 4. Was the example/CI encryption key ever used for production or persistent staging data?
 5. Which API/device clients cannot be upgraded simultaneously, and what version-negotiation window is required?
