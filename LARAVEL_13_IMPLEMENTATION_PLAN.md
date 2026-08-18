@@ -1,6 +1,6 @@
 # Laravel 13 Clean-Skeleton Implementation Plan
 
-Status: clean application foundation complete; discovery, staging, and business-logic migration not started
+Status: clean application foundation complete; discovery in progress; staging and business-logic migration not started
 Decision date: 17 August 2026
 Parent plan: [MODERNISATION_MASTERPLAN.md](MODERNISATION_MASTERPLAN.md)
 Starting point: Phase 5, a clean Laravel 13 skeleton followed by a controlled port of required behaviour
@@ -35,7 +35,7 @@ This is the agreed pause point. No legacy business logic, schema, integrations, 
 | Money foundation | Complete as a technical decision | Brick/Money is installed and the application rule is integer pence for stored GBP values, never floats. Legacy column units, rounding rules, models, and finance workflows are not yet mapped. |
 | Continuous integration | Complete | A clean GitHub runner passed the full quality job in run 32068268290 on commit `fce6655`. Branch-protection policy remains an administrative repository task. |
 | Local production-like services | Pending | The selected MySQL/MariaDB version, queue/cache/session services, mail catcher, object storage, and developer bootstrap still need production-inventory decisions and configuration. |
-| Parity and data discovery | Not started | Milestone 0 ledgers, production schema evidence, sanitised snapshot, owners, and disposition decisions are required before business slices are ported. |
+| Parity and data discovery | In progress | The legacy feature inventory is drafted in `docs/parity/features.md` against candidate revision `d686bf6`; deployed-baseline confirmation, owner assignments, disposition decisions, remaining ledgers, production schema evidence, and a sanitised snapshot are still required. |
 | Staging, observability, and deployment | Not started | Automated staging deployment/rollback, monitoring decisions, runbooks, and evidence remain required before Milestone 1 can be accepted. |
 | Business logic and external integrations | Not started | Membership, finance, access control, equipment, payment providers, scheduled jobs, and legacy device contracts remain in Milestones 2–9. |
 
