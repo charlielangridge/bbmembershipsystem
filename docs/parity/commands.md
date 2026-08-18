@@ -12,7 +12,7 @@ This ledger records every command registered and scheduled by the candidate lega
 
 - The legacy application configuration declares `UTC`; every time below is therefore interpreted as UTC until production configuration is confirmed.
 - The legacy schedule declares no `withoutOverlapping()`, `onOneServer()`, failure callback, retry policy, or explicit maintenance-mode behaviour.
-- Each legacy job sends a success heartbeat to a hard-coded Envoyer URL only when `APP_ENV` defaults or resolves to `production`. The replacement must use configured monitoring without copying those URLs.
+- Each legacy job invokes a post-run callback that sends a heartbeat to a hard-coded Envoyer URL when `APP_ENV` defaults or resolves to `production`. The source does not prove whether the callback runs only after a successful exit; production/runtime confirmation is required. The replacement must use configured monitoring without copying those URLs.
 - “Idempotency evidence” describes only visible source safeguards. Every command still needs repeat-run and partial-failure tests against production-shaped fixtures.
 
 ## Command inventory
@@ -48,6 +48,7 @@ This ledger records every command registered and scheduled by the candidate lega
 - [x] Record source-visible schedules, inputs, outputs, and idempotency evidence.
 - [ ] Confirm the deployed revision and production scheduler configuration.
 - [ ] Confirm the production timezone and whether more than one scheduler instance runs.
+- [ ] Confirm whether legacy post-run heartbeat callbacks execute after failed command exits.
 - [ ] Name accountable business and operations owners.
 - [ ] Characterise repeat, overlap, partial-failure, and recovery behaviour with fixtures.
 - [ ] Approve replacement schedules and monitoring.
