@@ -27,7 +27,7 @@ This register is part of every matching route row. “Internal permission” mea
 | Account/admin, member-induction approval, cash, key-fob, role rows | Session + `role:admin`/`role:comms` as shown | HTML/Filament view for GET; redirect/JSON after mutation | route groups; named controllers |
 | Finance payment/statement rows | Session + `role:finance`; payment destroy also inherits member controller middleware | HTML view/file form for GET; redirect/JSON after mutation | finance route group; payment/statement controllers |
 | GoCardless member initiation/cancellation | Session + member controller middleware, except legacy completion GET which declares none | Provider redirect or redirect/JSON after local/provider mutation | subscription/GoCardless controllers |
-| GoCardless webhook | HMAC-SHA256 `Webhook-Signature`; no browser session/CSRF | Empty/HTTP success on accepted events; logging/error paths for unknown data | `GoCardlessWebhookController` |
+| GoCardless webhook | HMAC-SHA256 `Webhook-Signature`; no browser session/CSRF | Body `Success` with HTTP 200 on accepted events; empty HTTP 403 for an invalid signature; logging/error paths for unknown data | `GoCardlessWebhookController` |
 | Stripe member payment | Session + member controller middleware | JSON/redirect payment result; local paid record on provider success | `StripePaymentController` |
 | PayPal IPN | PayPal SDK IPN validation; no browser session/CSRF | Empty HTTP acknowledgement path with logging/events | `PaypalIPNController` |
 | Equipment catalogue member GETs | Session + `role:member` | HTML view, normally 200 | equipment route group/controller |
