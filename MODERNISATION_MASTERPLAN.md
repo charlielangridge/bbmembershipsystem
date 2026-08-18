@@ -120,7 +120,7 @@ These are findings to verify and address, not claims that the running production
 5. Several access-control, camera, and webhook endpoints are intentionally outside member authentication. Each needs a documented trust model, payload validation, authentication/signature verification, replay window, rate limit, safe logging, and contract tests.
 6. GoCardless signature comparison uses `!=`; use the supported SDK verification path or constant-time `hash_equals` after validating required headers and payload shape.
 7. The application uses legacy Stripe Checkout/Charges, PayPal Merchant SDK/IPN, and old GoCardless clients. Payment modernisation is a compliance and correctness workstream, not just a package bump.
-8. Hard-coded Pusher identifiers, analytics identifiers, site URLs, heartbeat URLs, S3 URL construction, and external scripts should move to configuration or be retired. Apply a content security policy after enumerating required origins.
+8. Hard-coded Pusher identifiers, analytics identifiers, site URLs, heartbeat URLs, S3 URL construction, and external scripts must move to supported, privacy-approved configuration/integrations or be removed after their required outcome is replaced. Apply a content security policy after enumerating required origins.
 9. Production-only browser monitoring code and old Swagger UI assets are committed directly. Replace with supported packages/build outputs and establish a policy that generated/vendor assets are not hand-maintained.
 10. Debug tooling is in production requirements/providers. Clockwork and similar tools must be development-only and disabled by default outside local environments.
 
@@ -403,7 +403,7 @@ Work:
 - Remove React 0.13, Backbone, Babel 5, Browserify, Elixir, Gulp 3, jQuery 2, old Bootstrap, old Select2, Karma, and old browser launchers after their last consumer is gone.
 - Stop committing built `public/js/bundle.js`, `public/css/main.css`, and third-party Swagger assets unless the deployment model explicitly requires artefacts; generate them in CI/release builds.
 - Add accessibility keyboard/focus/error tests and responsive visual smoke checks for critical pages.
-- Add CSP nonces/SRI or self-hosted assets as appropriate; remove obsolete Google JSAPI, Google+, old analytics, and protocol-relative script URLs.
+- Add CSP nonces/SRI or self-hosted assets as appropriate; remove obsolete Google JSAPI, Google+, Universal Analytics, and protocol-relative script URLs after the required analytics outcome has a privacy-approved replacement.
 
 Exit gate:
 

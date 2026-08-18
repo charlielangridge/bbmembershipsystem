@@ -1,6 +1,6 @@
 # Legacy Feature Parity Ledger
 
-Status: feature dispositions, priorities, owner authority, and pre-cutover order confirmed; deployed baseline and named domain owners pending
+Status: feature dispositions, owner authority, and pre-cutover order confirmed; two discovery-added priorities, deployed baseline, and named domain owners pending
 Evidence date: 18 August 2026
 Evidence revision: legacy `master` at `d686bf6`
 
@@ -68,6 +68,7 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 | EQUIP-02 | Equipment session correction and fee calculation | `EquipmentLogController`, equipment commands and tests | Domain workflow plus Filament correction UI | required | P1 | Finance + physical access | Document fee units, missing-stop repair, duplicate handling, and rounding. |
 | OPS-01 | Scheduled membership, billing, balance, proposal, equipment, and device jobs | eight commands in `Console\Kernel`; hourly/daily schedules | Laravel scheduler and queues | required | P0 | Operations + relevant business owner | Record timezone, overlap behaviour, retry/idempotency, and current scheduler ownership in `commands.md`. |
 | OPS-02 | Scheduler heartbeat monitoring | Envoyer heartbeat calls in `Console\Kernel` | Supported monitoring replacement | required | P1 | Operations + technical | Replace embedded heartbeat URLs with approved monitoring and secret handling. |
+| OPS-03 | Production error reporting and alerting | Rollbar service provider/configuration, server package, browser shim | Supported error-reporting replacement | required | Proposed P1 | Operations + technical + data/privacy | Confirm alerting needs, PII scrubbing, retention, environments, release tracking, and incident ownership. |
 | COMM-01 | In-app notifications | `NotificationController`, notification views/package | Laravel notifications plus member Inertia UI | required | P1 | Membership | Confirm read/unread semantics and retained notification types. |
 | COMM-02 | Broadcast email to members/groups | `NotificationEmailController`, email views, Slack-related group fields | Laravel mail/notifications | required | P1 | Membership + data/privacy | Confirm audience selection, consent, audit, and delivery provider. |
 | COMM-03 | Feedback submission | `FeedbackController`, feedback widget/email | Member-facing Inertia journey | required | P2 | Client/product | Confirm destination and retention. |
@@ -82,6 +83,7 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 | ADMIN-01 | Application settings update | `SettingsController`, settings table/migration | Filament administration | required | P0 | Technical + relevant business owner | Inventory every setting key from production-safe evidence. |
 | ADMIN-02 | Swagger/API documentation endpoints | `/api-docs`, Swagger configuration/dependency | Final parity tranche; OpenAPI 3 replacement | required | P3 | Technical | Implement after every P0–P2 item is accepted using a supported generated/validated API contract and UI. |
 | ADMIN-03 | Web log viewer and Clockwork/debug tooling | `/logs`, log-viewer and Clockwork dependencies | Final parity tranche; secure observability replacement | required | P3 | Operations + technical | Implement after every P0–P2 item is accepted without exposing unrestricted raw production logs. |
+| ANALYTICS-01 | Usage analytics and reporting telemetry | Universal Analytics scripts in production layouts; authenticated internal user ID sent | Privacy-approved analytics replacement | required | Proposed P2 | Client/product + data/privacy | Define the decisions analytics must support, consent/lawful basis, identifier policy, retention, and approved replacement. |
 
 ## Evidence consulted
 
@@ -98,6 +100,7 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 - [ ] Name every sign-off owner.
 - [x] Record `required`, `changed`, or `retired` for every row.
 - [x] Approve the P0/P1/P2 assignments for core parity rows.
+- [ ] Approve proposed P1/P2 priorities for discovery-added `OPS-03` and `ANALYTICS-01`.
 - [x] Assign the six rows representing the five deferred areas to the confirmed final P3 tranche.
 - [ ] Record evidence for any retirement decision.
 - [x] Obtain client/product-owner direction on feature disposition and ordering.
