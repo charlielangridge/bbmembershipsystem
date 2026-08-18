@@ -10,6 +10,36 @@ This ledger inventories external services and machine-to-machine contracts visib
 
 Configuration names below identify required secret/configuration categories only. No values are recorded.
 
+## Source-visible version and endpoint register
+
+This register supplies the provider/API-version and endpoint fields for every integration row below. “SDK-managed” means the application source does not expose the provider base URL; the deployed account, environment, and live API version still require runtime confirmation. Secret-bearing configured or embedded URLs are identified by category, never copied into this ledger.
+
+| ID | Source-visible package / protocol version | Application endpoint(s) | External endpoint / base URL | Source |
+| --- | --- | --- | --- | --- |
+| INT-01 | `gocardless/gocardless-pro` 1.2.0; webhook signature protocol visible, provider API version not pinned | `POST /gocardless/webhook`; member GoCardless payment/subscription routes | SDK-managed; live/sandbox base URL not source-visible | `composer.lock`; GoCardless controllers/config |
+| INT-02 | Same GoCardless SDK as INT-01; migration protocol is application-specific | `POST /account/payment/migrate-direct-debit` | SDK-managed | `composer.lock`; `PaymentController::migrateDD()`; routes |
+| INT-03 | `stripe/stripe-php` 1.18.0; legacy Checkout.js, provider API version not pinned | `POST /account/{account}/payment/stripe` | `https://checkout.stripe.com/checkout.js`; server base URL SDK-managed | `composer.lock`; `StripePayment.js`; `StripePaymentController` |
+| INT-04 | `paypal/merchant-sdk-php` 3.8.107; IPN/NVP generation not explicitly pinned | `POST /paypal-ipn`; hosted-form return/cancel routes | `https://www.paypal.com/cgi-bin/webscr`; SDK API base URL is mode-managed | `composer.lock`; `PayPalConfig`; PayPal views/controller |
+| INT-05 | `nuovo/spreadsheet-reader` 0.5.11; file format/API generation not source-visible | `GET /statement-import/create`; `POST /statement-import` | None; uploaded file only | `composer.lock`; statement import routes/controller |
+| INT-06 | `league/flysystem-aws-s3-v3` 1.0.18; `intervention/image` 2.4.1 | Laravel filesystem calls; public object paths | `https://s3-eu-west-1.amazonaws.com/{configured-bucket}/...` | `composer.lock`; filesystem config; image/entity helpers |
+| INT-07 | `intervention/image` 2.4.1; `sybio/gif-creator` 1.0.0; multipart camera contract has no declared version | `POST /camera/store`; `POST /camera/event/store` | S3 endpoint family from INT-06 | `composer.lock`; CCTV controller/routes |
+| INT-08 | Laravel 5.1 queue contract; SQS API version not source-visible | Worker/scheduler only; no inbound HTTP endpoint | Configured `AWS_QUEUE_URL` | framework lock/config; `config/queue.php` |
+| INT-09 | Gravatar URL contract; no explicit API version | None | `https://www.gravatar.com/avatar/{md5-email}` | `UserImage::gravatar()` |
+| INT-10 | Laravel 5.1 Mail contract; provider/API version not source-visible | Application mail jobs/listeners; no inbound HTTP endpoint | Configured SMTP host/port | framework lock; `config/mail.php`; mailers/listeners |
+| INT-11 | Generic JSON webhook; legacy `maknz/slack` 1.7.0 is present but active send bypasses it | None | Configured secret Discord webhook URL | `composer.lock`; `UserObserver`; Slack config |
+| INT-12 | `pusher/pusher-php-server` 2.6.4; browser client 2.2 | `POST /session/pusher` | `//js.pusher.com/2.2/pusher.min.js`; service API SDK-managed | `composer.lock`; session controller; layouts/realtime view |
+| INT-13 | `jenssegers/rollbar` 1.5.1; `rollbar/rollbar` 0.18.2; browser shim loads Rollbar JS 1.2 | Application exception/log hooks; no inbound HTTP endpoint | `//d37gvrvc0wt4s1.cloudfront.net/js/v1.2/rollbar.min.js`; server API SDK-managed | `composer.lock`; Rollbar provider/config; browser partial |
+| INT-14 | Universal Analytics legacy `analytics.js`; measurement protocol/version otherwise unpinned | Browser page-view calls | `//www.google-analytics.com/analytics.js` | production layouts |
+| INT-15 | Envoyer Beats URL callback; no API version visible | Eight scheduler post-run callbacks | Embedded secret heartbeat URLs, intentionally not reproduced | console kernel; `docs/parity/commands.md` |
+| INT-16 | `rap2hpoutre/laravel-log-viewer` 0.10.4; `itsgoingd/clockwork` 1.14.5 | `GET /logs`; Clockwork package endpoint family `/__clockwork/*` | None | `composer.lock`; routes; Clockwork config |
+| INT-17 | `zircote/swagger-php` 2.0.12; Swagger 2 annotations | `ANY /api-docs.json`; `GET /api-docs` | None; bundled UI/assets | `composer.lock`; Swagger config/routes/annotations |
+| INT-18 | No deployment API/runtime version visible | None | GitHub Deployments API queried read-only; no deployment records returned | repository refs/tags; query dated 18 August 2026 |
+| INT-19 | Unversioned form-encoded legacy device protocol | `POST /access-control/main-door` | None; device-to-application HTTP | route; access controller/tests |
+| INT-20 | Unversioned pipe-delimited legacy device protocol | `POST /access-control/device` | None; device-to-application HTTP | route; device access controller/tests |
+| INT-21 | Unversioned JSON/form legacy ACS protocol | `POST /acs` | None; device-to-application HTTP | route; ACS controller/validator/tests |
+| INT-22 | Unversioned Spark compatibility protocol | `POST /acs/spark` | None; device-to-application HTTP | route; Spark controller |
+| INT-23 | Unversioned API-key ACS node/activity protocol; Swagger 2 annotations | `/acs/test`; `/acs/status/{tagId}`; `/acs/node/boot`; `/acs/node/heartbeat`; `/acs/activity*` | None; device-to-application HTTP | ACS routes/middleware/controllers/annotations/tests |
+
 ## Payments and finance
 
 | ID | Capability / feature | Candidate-source contract | Configuration names | Approved direction / priority | Production evidence and decisions required | Source |
@@ -61,7 +91,7 @@ Configuration names below identify required secret/configuration categories only
 ## Completion checklist for the integration portion of NEW-003
 
 - [x] Inventory candidate-source payment, storage/media, mail, realtime, telemetry, monitoring, documentation, hosting, queue, and device integrations.
-- [x] Record source-visible endpoints, configuration-key names, payload responsibilities, approved replacement direction, and source references.
+- [x] Record source-visible package/protocol versions, application and external endpoints, configuration-key names, payload responsibilities, approved replacement direction, and source references.
 - [x] Add missing required error-reporting and analytics outcomes to the feature ledger.
 - [ ] Confirm the deployed revision and reconcile live routes/configuration against provider/device dashboards.
 - [ ] Capture redacted request/response fixtures for every active provider and device contract.

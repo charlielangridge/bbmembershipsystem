@@ -8,9 +8,43 @@ Evidence revision: legacy `master` at `d686bf6`
 
 This ledger expands every active `Route::resource` declaration into its concrete Laravel 5.1 methods, paths, names, and actions. Every table row is sourced from `app/Http/routes.php` at the evidence revision; controller-specific audience constraints are sourced from the named controller constructor/action. Global legacy middleware evidence comes from `app/Http/Kernel.php`.
 
-Feature parity preserves each required outcome. Member/public browser routes move to Inertia, privileged administration moves to Filament, authentication moves to Fortify, and provider/device routes keep compatibility contracts until an approved versioned replacement is deployed. Exact legacy browser paths/names remain compatibility candidates until production traffic/bookmarks are assessed.
+Feature parity preserves each required outcome. Member/public browser routes move to Inertia, privileged administration moves to Filament, authentication moves to Fortify, and provider/device routes keep compatibility contracts until an approved versioned replacement is deployed. Exact legacy browser paths/names remain compatibility candidates until production traffic/bookmarks are assessed. Each route row's authentication and source-visible response fields are supplied by the exhaustive register below; more-specific entries override broader section entries.
 
 Audience abbreviations: `Public`, `Member`, `Admin`, `Finance`, `Comms`, `Equipment`, human `ACS role`, and machine `API key`. The legacy global stack enforces SSL/session behavior, but its CSRF middleware is commented out; the replacement must restore CSRF for browser mutations and use explicit provider/device authentication for non-browser contracts.
+
+## Authentication and response register
+
+This register is part of every matching route row. “Internal permission” means a controller/model check visible outside route middleware; it must become an explicit Laravel policy. Response families summarize source-visible success behavior; exact validation/error payloads, headers, and redirects remain fixture work.
+
+| Matching rows | Authentication / authorization | Source-visible response family | Source |
+| --- | --- | --- | --- |
+| `/`; public member-directory and public policy GETs | Optional session or none; no role middleware | HTML view, normally 200 | `routes.php`; named controllers |
+| `/login`, `/session/create`, password GETs, `/register`, `/account/create` | None; registration guest-only middleware is not active | HTML form view, normally 200 | `routes.php`; auth/account controllers |
+| `POST /session`, password POSTs, public registration POST | None; legacy browser CSRF absent | Redirect with session notification/errors | auth/account controllers; global middleware |
+| logout routes | Session may exist; no explicit route role; legacy GET mutates session | Redirect after session destruction | `SessionController::destroy()` |
+| `/session/pusher` | Session + `role:member`; private channel constrained to authenticated user ID | Pusher authorization JSON/string or provider error | `SessionController::pusherAuth()` |
+| Account/profile/balance/member-induction member rows | Session + controller/route `role:member`; self-or-role checks where named in Audience | HTML view for GET; redirect or JSON for mutations | named controllers; `User::findWithPermission()` |
+| Account/admin, member-induction approval, cash, key-fob, role rows | Session + `role:admin`/`role:comms` as shown | HTML/Filament view for GET; redirect/JSON after mutation | route groups; named controllers |
+| Finance payment/statement rows | Session + `role:finance`; payment destroy also inherits member controller middleware | HTML view/file form for GET; redirect/JSON after mutation | finance route group; payment/statement controllers |
+| GoCardless member initiation/cancellation | Session + member controller middleware, except legacy completion GET which declares none | Provider redirect or redirect/JSON after local/provider mutation | subscription/GoCardless controllers |
+| GoCardless webhook | HMAC-SHA256 `Webhook-Signature`; no browser session/CSRF | Empty/HTTP success on accepted events; logging/error paths for unknown data | `GoCardlessWebhookController` |
+| Stripe member payment | Session + member controller middleware | JSON/redirect payment result; local paid record on provider success | `StripePaymentController` |
+| PayPal IPN | PayPal SDK IPN validation; no browser session/CSRF | Empty HTTP acknowledgement path with logging/events | `PaypalIPNController` |
+| Equipment catalogue member GETs | Session + `role:member` | HTML view, normally 200 | equipment route group/controller |
+| Equipment administration/resource mutations | Session + `role:member` and controller `role:equipment` for resource actions | HTML form view or redirect after mutation | `EquipmentController::__construct()` |
+| Equipment custom photo/log rows | Session + `role:member`; additional internal checks are incomplete/ambiguous | Redirect/JSON after upload/removal/correction | named controllers |
+| Notifications/activity/storage/stats/proposals/groups/resources/expenses member rows | Session + `role:member`, plus internal ownership/admin checks where shown | HTML view for GET; redirect or JSON for mutations | route declarations; named controllers |
+| Broadcast-email rows | Session + `role:member` plus internal group/admin checks | HTML form then redirect/session notification | `NotificationEmailController` |
+| `/feedback` | Session + `role:member` | JSON object containing success flag | `FeedbackController::store()` |
+| `/access-control/*`, `/acs`, `/acs/spark` | No verified route authentication; legacy session driver changed to array | Legacy JSON/text contract, often HTTP 200 even for domain denial; exact bytes require fixtures | global middleware; named controllers |
+| Camera rows | No route authentication | Empty/HTTP response after synchronous object/media mutation; exact error/status contract untested | `CCTVController` |
+| `/detected_devices*` | Session + `role:admin` | Index HTML; missing/stub actions have no successful response contract | route group; `DetectedDevicesController` |
+| `/devices*` | Session + human `role:acs` | HTML views or redirects after node mutation | route group; `DeviceController` |
+| Newer `/acs/*` rows | `ApiKey` header matched to ACS node | JSON/empty responses with source-visible 200/201/204/400/404 families | ACS middleware/controllers/annotations |
+| `/settings` | None declared (authorization defect) | Redirect/response after arbitrary setting mutation | `routes.php`; `SettingsController` |
+| `/logs` | Session + `role:admin` | Package-rendered HTML log view | log route/package controller |
+| `/api-docs.json` | None | JSON file response 200 or 404; route accepts any method | docs closure in `routes.php` |
+| `/api-docs` | None | Generated Swagger HTML view, normally 200 | docs closure in `routes.php` |
 
 ## Home and authentication
 
@@ -223,9 +257,10 @@ Audience abbreviations: `Public`, `Member`, `Admin`, `Finance`, `Comms`, `Equipm
 
 - [x] Expand every active candidate-source resource declaration into concrete method/path/name/action rows.
 - [x] Record source-visible audiences and map every active route to a required feature and target boundary.
+- [x] Record source-visible authentication/authorization and response families for every row through the matching-route register.
 - [x] Record route-name collisions, advertised stub/missing actions, unsafe verbs, and authorization gaps.
 - [ ] Confirm the deployed revision and reconcile production route output against this ledger.
-- [ ] Capture response, validation, redirect, session, error, byte-framing, and side-effect contracts for every active route.
+- [ ] Capture detailed validation, redirect location, session, error, header, byte-framing, and side-effect fixtures for every active route.
 - [ ] Confirm which browser URLs require direct preservation versus permanent redirects.
 - [ ] Name feature/domain owners and approve each deliberate route difference.
 - [ ] Add a contract/feature/browser test reference for every retained or changed route before cutover.
