@@ -505,7 +505,7 @@ Goal: finish the supported browser experience and required non-payment integrati
 
 Tasks:
 
-- Complete the Inertia 3/Vue 3/TypeScript application using reusable Vue and shadcn-vue components; keep Blade to the single Inertia root view unless a server-rendered exception is approved.
+- Complete public and member-facing journeys in the Inertia 3/Vue 3/TypeScript application using reusable Vue and shadcn-vue components; keep their Blade usage to the single Inertia root view unless a server-rendered exception is approved. Implement privileged administration with Filament resources/pages and Filament's framework-managed views.
 - Replace legacy React/Backbone widgets for notifications, expenses, payment filtering/forms, feedback, date selection, and snackbars.
 - Upgrade/replace image processing, S3 access, broadcasting/realtime, mail, error reporting, and Markdown rendering.
 - Retire unused Slack, CCTV GIF, Pusher realtime, Swagger UI, analytics, and debug tooling only where the feature ledger approves retirement.

@@ -138,7 +138,7 @@ Laravel 13 requires PHP 8.3–8.5 and receives security fixes until March 2028. 
 
 ### 2.2 Application shape
 
-- Keep Laravel routes, controllers, validation, policies, and server-side data loading authoritative while Inertia renders the Vue client application.
+- Keep Laravel routes, controllers, validation, policies, and server-side data loading authoritative. Inertia renders the public/member Vue application; Filament renders the privileged administration panel within its Livewire boundary.
 - Preserve existing URLs, database identifiers, membership/payment semantics, and device contracts unless a versioned migration explicitly changes them.
 - Put HTTP concerns in controllers and form requests, authorisation in policies/gates, workflows in application actions/services, provider calls behind interfaces, and persistence rules close to models/query objects.
 - Introduce typed enums/value objects for statuses, payment reasons/sources, currency amounts, and identifiers after tests lock current semantics.
@@ -294,12 +294,12 @@ Goal: stop obsolete third-party APIs from leaking through the application before
 
 | Current package/capability | Observed use | Planned action |
 |---|---|---|
-| `illuminate/html` 5.0 | Form/HTML facades across Blade; custom sortable helpers | Replace with Inertia Vue form components and a small tested pagination/sort helper |
+| `illuminate/html` 5.0 | Form/HTML facades across Blade; custom sortable helpers | Replace public/member forms with Inertia Vue components and privileged administration forms/tables with Filament; retain a small tested pagination/sort helper where the member UI needs it |
 | `rap2hpoutre/laravel-log-viewer` | One admin route | Remove or replace with the selected central log platform; do not expose raw logs casually |
 | `nuovo/spreadsheet-reader` | HSBC statement import | Put parsing behind `StatementReader`; replace with a supported CSV/XLSX library after real fixture tests |
 | Intervention Image 2 | profile, equipment, expense, CCTV images | Upgrade behind an `ImageProcessor` adapter; preserve orientation, crop, encoding, and size with golden-file tests |
 | PayPal Merchant SDK | IPN subscriptions/donations | Confirm live use; migrate to a supported PayPal Checkout/webhook integration or retire |
-| `laracasts/presenter` | Seven presenter classes/traits | Replace with Inertia resources/props, Vue components, model casts/accessors, or dedicated formatters |
+| `laracasts/presenter` | Seven presenter classes/traits | Replace member-facing presentation with Inertia resources/props and Vue components, administration presentation with Filament resources/tables where applicable, and shared domain formatting with model casts/accessors or dedicated formatters |
 | Stripe PHP 1.x / legacy Checkout | token to `Stripe_Charge::create` | Move to a current Stripe SDK and server-created Checkout Session or PaymentIntent with signed webhooks and idempotency |
 | `michelf/php-markdown` | policies, proposals, equipment help | Upgrade or replace behind a Markdown renderer; define trusted/untrusted HTML sanitisation policy |
 | `jenssegers/rollbar` | provider plus old browser snippet | Replace with the supported Rollbar Laravel integration or the chosen error platform |

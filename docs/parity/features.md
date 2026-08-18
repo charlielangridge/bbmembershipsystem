@@ -46,6 +46,7 @@ Priorities remain pending until the product owner assigns `P0`, `P1`, or `P2`. A
 | MEM-06 | Groups and group membership views | `GroupsController`, `groups/*`, group tests | Candidate P1/P2 | pending | Pending | Membership | Confirm whether groups remain distinct from authorisation roles. |
 | MEM-07 | Member induction submission and approval | `MemberInductionController`, `member_inductions`, induction tests | Candidate P1 | pending | Pending | Membership | Record approver roles, evidence, and state transitions. |
 | AUTHZ-01 | Roles, role membership, and permission management | `RolesController`, `RoleUsersController`, role middleware and tests | Spatie Laravel Permission + policies; Filament administration | pending | Pending | Client/product + technical | Produce an approved permission matrix and reconciled legacy-role import before implementation. |
+| AUDIT-01 | User and profile-data change audit trail | `UserAuditObserver`, `AuditLog`, observer registration for `User` and `ProfileData` | Candidate P0/P1 | pending | Pending | Membership + data/privacy | Confirm audited fields, actor attribution, retention, visibility, and whether historical entries must migrate. |
 | FIN-01 | Member balance and BB credit | `BalanceController`, `BalancePaymentController`, `account/balance`, finance tests | Candidate P0 | pending | Pending | Finance | Confirm stored units, negative-balance rules, and reconciliation totals. |
 | FIN-02 | Withdrawals and balance-funded payments | `BalanceController::withdrawal`, `BalancePaymentController::store` | Candidate P0 | pending | Pending | Finance | Confirm approval, notification, and audit requirements. |
 | FIN-03 | Payment administration and payment overview | `PaymentController`, `PaymentOverviewController`, `payments/*`, finance tests | Candidate P0 | pending | Pending | Finance | Map payment states and correction/deletion rules. |
@@ -85,7 +86,7 @@ Priorities remain pending until the product owner assigns `P0`, `P1`, or `P2`. A
 ## Evidence consulted
 
 - `app/Http/routes.php` at legacy revision `d686bf6`.
-- Controllers under `app/Http/Controllers/` and `app/Observer/UserObserver.php` at that revision.
+- Controllers under `app/Http/Controllers/` and observers under `app/Observer/` at that revision.
 - Scheduled commands and `app/Console/Kernel.php` at that revision.
 - Legacy views, migrations, Composer dependencies, PHPUnit tests, and Codeception suites at that revision.
 - Priority candidates and non-goals in `LARAVEL_13_IMPLEMENTATION_PLAN.md`.
