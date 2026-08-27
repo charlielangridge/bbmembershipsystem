@@ -1,6 +1,6 @@
 # Legacy Feature Parity Ledger
 
-Status: feature dispositions, owner authority, and pre-cutover order confirmed; two discovery-added priorities, deployed baseline, and named domain owners pending
+Status: feature dispositions, owner authority, and pre-cutover order confirmed; deployed baseline and named domain owners pending
 Evidence date: 18 August 2026
 Evidence revision: legacy `master` at `d686bf6`
 
@@ -37,7 +37,7 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | APP-01 | Home page and authenticated dashboard | `/`, `HomeController::index`, `home.blade.php`, homepage tests | Member-facing Inertia journey | required | P1 | Client/product | Confirm the public and authenticated content/actions required at the root route. |
 | AUTH-01 | Login, logout, password reset, and session handling | `SessionController`, `ReminderController`, `routes.php`, login tests | Fortify replacement already selected | required | P0 | Client/product + technical | Confirm legacy password compatibility separately under `ID-001`; retain Fortify rather than legacy controllers. |
-| AUTH-02 | Realtime/Pusher session authorisation | `session/pusher`, `SessionController::pusherAuth`, Pusher dependency | Supported realtime replacement | required | P2 | Client/product + technical | Preserve session-authorised realtime behaviour using a supported broadcasting implementation. |
+| AUTH-02 | Realtime/Pusher session authorisation | `session/pusher`, `SessionController::pusherAuth`, Pusher dependency | Laravel Reverb, Echo, and standard private-channel authorisation | required | P2 | Client/product + technical | Replace the custom Pusher authorisation endpoint while preserving authenticated per-member channel isolation. |
 | MEM-01 | Public registration and account setup | `register`, `AccountController::create/store`, signup tests | Member-facing Inertia journey | required | P1 | Membership | Confirm current signup, approval, and initial payment expectations. |
 | MEM-02 | Member account administration and lifecycle actions | `account` resource, admin update, rejoin, cancel/destroy, trusted missing photos | Filament administration plus member self-service | required | P0 | Membership | Capture every legal status transition in `statuses.md`. |
 | MEM-03 | Profile, address, photo, and privacy editing | `ProfileController`, account profile views, profile/photo tests | Member-facing Inertia journey | required | P0 | Membership + data/privacy | Confirm image storage, visibility, and retention rules. |
@@ -68,7 +68,7 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 | EQUIP-02 | Equipment session correction and fee calculation | `EquipmentLogController`, equipment commands and tests | Domain workflow plus Filament correction UI | required | P1 | Finance + physical access | Document fee units, missing-stop repair, duplicate handling, and rounding. |
 | OPS-01 | Scheduled membership, billing, balance, proposal, equipment, and device jobs | eight commands in `Console\Kernel`; hourly/daily schedules | Laravel scheduler and queues | required | P0 | Operations + relevant business owner | Record timezone, overlap behaviour, retry/idempotency, and current scheduler ownership in `commands.md`. |
 | OPS-02 | Scheduler heartbeat monitoring | Envoyer heartbeat calls in `Console\Kernel` | Supported monitoring replacement | required | P1 | Operations + technical | Replace embedded heartbeat URLs with approved monitoring and secret handling. |
-| OPS-03 | Production error reporting and alerting | Rollbar service provider/configuration, server package, browser shim | Supported error-reporting replacement | required | Proposed P1 | Operations + technical + data/privacy | Confirm alerting needs, PII scrubbing, retention, environments, release tracking, and incident ownership. |
+| OPS-03 | Production error reporting and alerting | Rollbar service provider/configuration, server package, browser shim | Flare; remove Rollbar rather than migrate it | required | P1 | Operations + technical + data/privacy | Configure environment/release tracking, PII scrubbing, alert routing, retention, and incident ownership before production. |
 | COMM-01 | In-app notifications | `NotificationController`, notification views/package | Laravel notifications plus member Inertia UI | required | P1 | Membership | Confirm read/unread semantics and retained notification types. |
 | COMM-02 | Broadcast email to members/groups | `NotificationEmailController`, email views, Slack-related group fields | Laravel mail/notifications | required | P1 | Membership + data/privacy | Confirm audience selection, consent, audit, and delivery provider. |
 | COMM-03 | Feedback submission | `FeedbackController`, feedback widget/email | Member-facing Inertia journey | required | P2 | Client/product | Confirm destination and retention. |
@@ -78,12 +78,12 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 | FIN-07 | Expense submission and approval | `ExpensesController`, expense views/emails/tests | Inertia submission plus Filament approval | required | P1 | Finance | Confirm approval roles, receipt storage, payment states, and retention. |
 | SPACE-01 | Member storage-box allocation and charging | `StorageBoxController`, storage views/tests | Member Inertia plus Filament administration | required | P1 | Membership + finance | Confirm allocation rules, pricing, and historical balances. |
 | REPORT-01 | Member and direct-debit statistics | `StatsController`, stats views/tests | Filament reports/widgets | required | P2 | Client/product + finance | List exact decisions/reports these statistics support. |
-| REPORT-02 | Activity and realtime activity views | `ActivityController`, activity views/tests, Pusher integration | Supported realtime replacement | required | P2 | Client/product + data/privacy | Confirm visibility and retention while preserving realtime behaviour. |
+| REPORT-02 | Activity and realtime activity views | `ActivityController`, activity views/tests, Pusher integration | Laravel Reverb and Echo | required | P2 | Client/product + data/privacy | Confirm the audience, payload fields, and retention before recreating the legacy public activity channel. |
 | CONTENT-01 | Member resources and policy documents | `ResourcesController`, resource/policy views | Member Inertia plus Filament administration | required | P1 | Client/product | Identify the current document source and acceptance/versioning workflow. |
 | ADMIN-01 | Application settings update | `SettingsController`, settings table/migration | Filament administration | required | P0 | Technical + relevant business owner | Inventory every setting key from production-safe evidence. |
 | ADMIN-02 | Swagger/API documentation endpoints | `/api-docs`, Swagger configuration/dependency | Final parity tranche; OpenAPI 3 replacement | required | P3 | Technical | Implement after every P0–P2 item is accepted using a supported generated/validated API contract and UI. |
 | ADMIN-03 | Web log viewer and Clockwork/debug tooling | `/logs`, log-viewer and Clockwork dependencies | Final parity tranche; secure observability replacement | required | P3 | Operations + technical | Implement after every P0–P2 item is accepted without exposing unrestricted raw production logs. |
-| ANALYTICS-01 | Usage analytics and reporting telemetry | Universal Analytics scripts in production layouts; authenticated internal user ID sent | Privacy-approved analytics replacement | required | Proposed P2 | Client/product + data/privacy | Define the decisions analytics must support, consent/lawful basis, identifier policy, retention, and approved replacement. |
+| ANALYTICS-01 | Usage analytics and reporting telemetry | Universal Analytics scripts in production layouts; authenticated internal user ID sent | Fathom anonymous aggregate page views across public, member, and administrative browser pages | required | P2 | Client/product + data/privacy | Do not send member identifiers or sensitive business data. Marketing attribution and custom journey events are out of scope unless separately approved; confirm retention, access, and applicable privacy settings before production. |
 
 ## Evidence consulted
 
@@ -100,7 +100,7 @@ The P0/P1/P2 values below are the approved implementation order. P3 is the confi
 - [ ] Name every sign-off owner.
 - [x] Record `required`, `changed`, or `retired` for every row.
 - [x] Approve the P0/P1/P2 assignments for core parity rows.
-- [ ] Approve proposed P1/P2 priorities for discovery-added `OPS-03` and `ANALYTICS-01`.
+- [x] Approve P1/P2 priorities and replacement boundaries for discovery-added `OPS-03` and `ANALYTICS-01`.
 - [x] Assign the six rows representing the five deferred areas to the confirmed final P3 tranche.
 - [ ] Record evidence for any retirement decision.
 - [x] Obtain client/product-owner direction on feature disposition and ordering.

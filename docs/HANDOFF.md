@@ -2,19 +2,21 @@
 
 ## Resume point
 
-Continue the Laravel 13 implementation plan from the parity-discovery checkpoint. The repository is on branch `modernisation/laravel-13`; the worktree was clean at handoff. The latest commits are:
+Continue the Laravel 13 implementation plan from the parity-discovery checkpoint. The repository is on branch `modernisation/laravel-13`. Relevant recent commits before this decision update are:
 
+- `911fab1` — add the repository handoff guide
 - `e25b867` — correct parity source evidence
 - `7d713c0` — complete parity contract fields
 
-## Immediate next decision
+## Latest product decisions
 
-Integration discovery added two required capabilities that were absent from the initial feature set:
+On 27 August 2026, Charlie Langridge approved the two discovery-added capabilities and their replacement boundaries:
 
-- `OPS-03` — production error reporting and alerting, currently `Proposed P1`.
-- `ANALYTICS-01` — usage analytics and reporting telemetry, currently `Proposed P2`.
+- `OPS-03` is P1 and uses Flare. Remove Rollbar rather than migrating it.
+- `ANALYTICS-01` is P2 and uses Fathom for anonymous aggregate page views across public, member, and administrative browser pages. Do not send member identifiers or sensitive business data. Marketing attribution and custom journey events are not currently required.
+- `AUTH-02` and `REPORT-02` use Laravel Reverb/Echo at P2. Remove hosted Pusher and its custom authorisation endpoint; preserve private member notifications, and recreate realtime activity only after its audience and payload are approved.
 
-Their required status is agreed, but their exact priorities still need product-owner approval. Ask whether to approve `OPS-03` as P1 and `ANALYTICS-01` as P2. If approved, update the feature ledger, completion checklist, plan status, and `.ai/rules/parity.md` consistently, then commit the decision.
+The next unresolved work is production reconciliation: confirm the deployed legacy revision and infrastructure, name domain owners, inspect live provider/device configuration, and obtain approved schema/sanitised-data evidence.
 
 ## Current decisions and constraints
 
@@ -29,7 +31,7 @@ Their required status is agreed, but their exact priorities still need product-o
 
 The candidate-source parity ledgers are complete for their source-visible inventory:
 
-- [Feature ledger](parity/features.md): 49 required capabilities, including the two proposed-priority discoveries.
+- [Feature ledger](parity/features.md): 49 required capabilities with approved priorities and replacement boundaries.
 - [Route ledger](parity/routes.md): 145 concrete active method/path rows, with exhaustive authentication and response-family coverage.
 - [Command ledger](parity/commands.md): eight registered/scheduled commands and post-run callbacks.
 - [Status ledger](parity/statuses.md): source-observed state families and transitions with per-fact references.
@@ -58,4 +60,3 @@ The Standards and Spec re-reviews are clean through `e25b867`. The last correcti
 - `fortify-development` — use for authentication work.
 - `inertia-vue-development` and `wayfinder-development` — use for member-facing Inertia route/UI work.
 - `domain-modeling` — use when changing the glossary or ADRs.
-

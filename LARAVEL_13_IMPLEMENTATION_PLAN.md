@@ -13,6 +13,12 @@ Canonical repository: [charlielangridge/bbmembershipsystem](https://github.com/c
 - Filament is the privileged administration panel, while Inertia Vue remains the member-facing application; see [ADR 0002](docs/adr/0002-use-filament-for-administration.md).
 - All parity-ledger capabilities must be complete before production cutover, with P3 implemented last; see [ADR 0003](docs/adr/0003-require-full-parity-before-cutover.md).
 
+### Integration decisions — 27 August 2026
+
+- Flare will provide P1 production error reporting; remove the legacy Rollbar server/browser integration rather than migrate it.
+- Fathom will provide P2 anonymous aggregate page views across public, member, and administrative browser pages. Do not send member identifiers or sensitive business data; marketing attribution and custom journey events are out of scope unless separately approved.
+- Laravel Reverb and Echo will provide P2 realtime broadcasting. Remove the hosted Pusher integration and custom `/session/pusher` authorisation endpoint in favour of Laravel's standard private-channel authorisation; approve the legacy activity-channel audience and payload before recreating it.
+
 ### Foundation checkpoint — 17 August 2026
 
 Completed on branch `modernisation/laravel-13`:
@@ -42,7 +48,7 @@ This is the agreed pause point. No legacy business logic, schema, integrations, 
 | Money foundation | Complete as a technical decision | Brick/Money is installed and the application rule is integer pence for stored GBP values, never floats. Legacy column units, rounding rules, models, and finance workflows are not yet mapped. |
 | Continuous integration | Complete | A clean GitHub runner passed the full quality job in run 32068268290 on commit `fce6655`. Branch-protection policy remains an administrative repository task. |
 | Local production-like services | Pending | The selected MySQL/MariaDB version, queue/cache/session services, mail catcher, object storage, and developer bootstrap still need production-inventory decisions and configuration. |
-| Parity and data discovery | Candidate-source NEW-002/NEW-003 inventory complete; reconciliation pending | Charlie Langridge approved complete pre-cutover parity and the original 47 priorities in `docs/parity/features.md`. Integration discovery added required error-reporting and analytics rows with proposed priorities, bringing the candidate inventory to 49. The candidate revision is inventoried across `features.md`, `routes.md` (145 concrete method/path rows), `commands.md`, `statuses.md`, and `integrations.md`. Deployed-baseline confirmation, two priority approvals, named domain owners, production contract/data reconciliation, schema evidence, and a sanitised snapshot remain required. |
+| Parity and data discovery | Candidate-source NEW-002/NEW-003 inventory complete; reconciliation pending | Charlie Langridge approved complete pre-cutover parity and all 49 priorities in `docs/parity/features.md`, including Flare/P1 error reporting and Fathom/P2 anonymous analytics. The candidate revision is inventoried across `features.md`, `routes.md` (145 concrete method/path rows), `commands.md`, `statuses.md`, and `integrations.md`. Deployed-baseline confirmation, named domain owners, production contract/data reconciliation, schema evidence, and a sanitised snapshot remain required. |
 | Staging, observability, and deployment | Not started | Automated staging deployment/rollback, monitoring decisions, runbooks, and evidence remain required before Milestone 1 can be accepted. |
 | Business logic and external integrations | Not started | Membership, finance, access control, equipment, payment providers, scheduled jobs, and legacy device contracts remain in Milestones 2–9. |
 
@@ -206,6 +212,7 @@ Laravel Boost will be installed immediately after the skeleton and its generated
 | Member UI | Inertia `^3.0` + Vue `^3.5` + TypeScript | Use Laravel routes/controllers with pages under `resources/js/pages` for public and member-facing journeys |
 | Administration UI | Filament `^5.0` panel builder + Livewire 4 | Use Filament resources/pages/actions for privileged operations against the same user identity and policies; keep Livewire inside the administration boundary |
 | Browser behaviour | Vue Composition API | Reuse starter-kit components and Wayfinder-generated route functions |
+| Realtime | Laravel Reverb + Echo | Preserve required private member notifications and approved activity events; do not retain hosted Pusher configuration or its custom authorisation endpoint |
 | CSS | Tailwind CSS `^4.1` + shadcn-vue components | Preserve workflows before visual redesign |
 | Static analysis | Larastan/PHPStan | Start with no new baseline debt; ratchet upward |
 | Formatting | Laravel Pint | Formatting-only commits where broad |
@@ -509,7 +516,7 @@ Tasks:
 - Complete public and member-facing journeys in the Inertia 3/Vue 3/TypeScript application using reusable Vue and shadcn-vue components; keep their Blade usage to the single Inertia root view unless a server-rendered exception is approved. Implement privileged administration with Filament resources/pages and Filament's framework-managed views.
 - Replace legacy React/Backbone widgets for notifications, expenses, payment filtering/forms, feedback, date selection, and snackbars.
 - Upgrade/replace image processing, S3 access, broadcasting/realtime, mail, error reporting, and Markdown rendering.
-- Replace legacy CCTV GIF handling, Pusher realtime, Swagger UI, and log/debug viewing with supported implementations at the priority assigned by the feature ledger; remove obsolete packages only after their required outcomes have replacements.
+- Replace legacy CCTV GIF handling, Swagger UI, and log/debug viewing with supported implementations at the priority assigned by the feature ledger. Replace hosted Pusher with Laravel Reverb/Echo at P2; remove obsolete packages only after their required outcomes have replacements.
 - In the P3 tranche, publish the required API documentation as an OpenAPI 3 contract generated and validated in CI.
 - Add CSP and other browser security headers after external origins are final.
 - Add browser smoke tests and accessibility checks for all P0 journeys.

@@ -22,7 +22,7 @@ This register is part of every matching route row. “Internal permission” mea
 | `/login`, `/session/create`, password GETs, `/register`, `/account/create` | None; registration guest-only middleware is not active | HTML form view, normally 200 | `routes.php`; auth/account controllers |
 | `POST /session`, password POSTs, public registration POST | None; legacy browser CSRF absent | Redirect with session notification/errors | auth/account controllers; global middleware |
 | logout routes | Session may exist; no explicit route role; legacy GET mutates session | Redirect after session destruction | `SessionController::destroy()` |
-| `/session/pusher` | Session + `role:member`; private channel constrained to authenticated user ID | Pusher authorization JSON/string or provider error | `SessionController::pusherAuth()` |
+| `/session/pusher` | Session + `role:member`; private channel constrained to authenticated user ID | Pusher authorization JSON/string or provider error; replace with Reverb/Echo standard private-channel authorisation | `SessionController::pusherAuth()` |
 | Account/profile/balance/member-induction member rows | Session + controller/route `role:member`; self-or-role checks where named in Audience | HTML view for GET; redirect or JSON for mutations | named controllers; `User::findWithPermission()` |
 | Account/admin, member-induction approval, cash, key-fob, role rows | Session + `role:admin`/`role:comms` as shown | HTML/Filament view for GET; redirect/JSON after mutation | route groups; named controllers |
 | Finance payment/statement rows | Session + `role:finance`; payment destroy also inherits member controller middleware | HTML view/file form for GET; redirect/JSON after mutation | finance route group; payment/statement controllers |
@@ -56,7 +56,7 @@ This register is part of every matching route row. “Internal permission” mea
 | GET | `/session/create` | `session.create` | `SessionController@create` | Public | Fortify compatibility/redirect; AUTH-01 |
 | POST | `/session` | `session.store` | `SessionController@store` | Public | Fortify compatibility; AUTH-01 |
 | DELETE | `/session/{session}` | `session.destroy` | `SessionController@destroy` | Public | Fortify compatibility; AUTH-01 |
-| POST | `/session/pusher` | `session.pusher` | `SessionController@pusherAuth` | Member | Supported realtime auth; AUTH-02 |
+| POST | `/session/pusher` | `session.pusher` | `SessionController@pusherAuth` | Member | Replace with Reverb/Echo standard private-channel authorisation; AUTH-02 |
 | GET | `/password/forgotten` | `password-reminder.create` | `ReminderController@create` | Public | Fortify compatibility/redirect; AUTH-01 |
 | POST | `/password/forgotten` | `password-reminder.store` | `ReminderController@store` | Public | Fortify compatibility; AUTH-01 |
 | GET | `/password/reset/{id}` | unnamed | `ReminderController@getReset` | Public | Fortify reset compatibility; AUTH-01 |
@@ -187,7 +187,7 @@ This register is part of every matching route row. “Internal permission” mea
 | Method | Path | Name | Action | Audience | Target / feature |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/activity` | `activity.index` | `ActivityController@index` | Member | Inertia; REPORT-02 |
-| GET | `/activity/realtime` | `activity.realtime` | `ActivityController@realtime` | Member | Inertia + supported realtime; REPORT-02/AUTH-02 |
+| GET | `/activity/realtime` | `activity.realtime` | `ActivityController@realtime` | Member | Inertia + Reverb/Echo after activity audience/payload approval; REPORT-02/AUTH-02 |
 | POST | `/activity` | `activity.create` | `ActivityController@create` | Member | Authorized Inertia mutation; REPORT-02 |
 | GET | `/storage_boxes` | `storage_boxes.index` | `StorageBoxController@index` | Member | Inertia; SPACE-01 |
 | PUT | `/storage_boxes/{id}` | `storage_boxes.update` | `StorageBoxController@update` | Member/internal rules | Inertia + Filament with explicit policy; SPACE-01 |

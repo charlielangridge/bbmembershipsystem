@@ -304,11 +304,11 @@ Goal: stop obsolete third-party APIs from leaking through the application before
 | `laracasts/presenter` | Seven presenter classes/traits | Replace member-facing presentation with Inertia resources/props and Vue components, administration presentation with Filament resources/tables where applicable, and shared domain formatting with model casts/accessors or dedicated formatters |
 | Stripe PHP 1.x / legacy Checkout | token to `Stripe_Charge::create` | Move to a current Stripe SDK and server-created Checkout Session or PaymentIntent with signed webhooks and idempotency |
 | `michelf/php-markdown` | policies, proposals, equipment help | Upgrade or replace behind a Markdown renderer; define trusted/untrusted HTML sanitisation policy |
-| `jenssegers/rollbar` | provider plus old browser snippet | Replace with the supported Rollbar Laravel integration or the chosen error platform |
+| `jenssegers/rollbar` | provider plus old browser snippet | Remove; replace the required error-reporting outcome with Flare at P1, without migrating Rollbar |
 | `maknz/slack` | provider; application calls mostly commented | Remove if unused; otherwise use a maintained notification/webhook adapter |
 | `sybio/gif-creator` | CCTV GIF generation | Replace behind a supported media adapter in the final parity tranche while preserving CCTV capture outcomes and applying approved privacy/retention controls |
 | Flysystem/S3 v1 | member/equipment/expense/CCTV objects | Move through Laravel filesystem APIs to current Flysystem; test visibility, URLs, metadata, and existing keys |
-| Pusher PHP 2 / JS 2.2 | private member notifications and realtime activity | Replace through supported Laravel broadcasting/Echo; move IDs/options to environment config and preserve session-authorised realtime behaviour |
+| Pusher PHP 2 / JS 2.2 | private member notifications and realtime activity | Remove the hosted Pusher integration; replace it with Laravel Reverb/Echo and standard private-channel authorisation at P2, preserving required notification and approved activity outcomes |
 | `arthurguy/notifications` | form flash/error API throughout views | Replace with Laravel session flash data, validation errors, and notifications |
 | Clockwork | provider in production requirements | Move to `require-dev`, upgrade, and register only locally, or remove |
 | Swagger PHP 2 and committed UI | ACS annotations and docs route | Move to OpenAPI 3 with a supported generator/UI, or replace with a checked-in API contract generated in CI |
@@ -403,7 +403,7 @@ Work:
 - Remove React 0.13, Backbone, Babel 5, Browserify, Elixir, Gulp 3, jQuery 2, old Bootstrap, old Select2, Karma, and old browser launchers after their last consumer is gone.
 - Stop committing built `public/js/bundle.js`, `public/css/main.css`, and third-party Swagger assets unless the deployment model explicitly requires artefacts; generate them in CI/release builds.
 - Add accessibility keyboard/focus/error tests and responsive visual smoke checks for critical pages.
-- Add CSP nonces/SRI or self-hosted assets as appropriate; remove obsolete Google JSAPI, Google+, Universal Analytics, and protocol-relative script URLs after the required analytics outcome has a privacy-approved replacement.
+- Add CSP nonces/SRI or self-hosted assets as appropriate; remove obsolete Google JSAPI, Google+, Universal Analytics, and protocol-relative script URLs when P2 Fathom anonymous aggregate page views replace the required analytics outcome.
 
 Exit gate:
 
