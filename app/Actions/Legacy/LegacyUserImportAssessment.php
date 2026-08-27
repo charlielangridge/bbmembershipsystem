@@ -19,6 +19,7 @@ final readonly class LegacyUserImportAssessment
         public int $invalidLegacyIds,
         public int $existingCanonicalIds,
         public int $invalidEmailVerificationStates,
+        public int $invalidLegacyTimestamps,
     ) {}
 
     public function unverifiedEmailStates(): int

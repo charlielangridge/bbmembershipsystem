@@ -5,7 +5,6 @@ namespace App\Actions\Legacy;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Hashing\BcryptHasher;
 use Illuminate\Hashing\HashManager;
-use Illuminate\Support\Str;
 use LogicException;
 
 final class AssessLegacyUsers
@@ -21,13 +20,10 @@ final class AssessLegacyUsers
         'honorary',
     ];
 
-    private const array VERIFIED_EMAIL_STATES = [1, '1', true];
-
-    private const array UNVERIFIED_EMAIL_STATES = [0, '0', false];
-
     public function __construct(
         private DatabaseManager $database,
         private HashManager $hash,
+        private LegacyUserIdentityMapper $identityMapper,
     ) {}
 
     public function handle(): LegacyUserImportAssessment
@@ -41,7 +37,7 @@ final class AssessLegacyUsers
         $legacyEmailCounts = [];
 
         foreach ($this->database->connection('legacy')->table('users')->select(['id', 'email'])->lazyById() as $legacyUser) {
-            $normalizedEmail = $this->normalizeEmail($legacyUser->email);
+            $normalizedEmail = $this->identityMapper->normalizeEmail($legacyUser->email);
             $legacyEmailCounts[$normalizedEmail] = ($legacyEmailCounts[$normalizedEmail] ?? 0) + 1;
         }
 
@@ -49,7 +45,7 @@ final class AssessLegacyUsers
         $canonicalIds = [];
 
         foreach ($this->database->table('users')->select(['id', 'email'])->lazyById() as $canonicalUser) {
-            $canonicalEmails[$this->normalizeEmail($canonicalUser->email)] = true;
+            $canonicalEmails[$this->identityMapper->normalizeEmail($canonicalUser->email)] = true;
             $canonicalIds[(string) $canonicalUser->id] = true;
         }
 
@@ -67,6 +63,7 @@ final class AssessLegacyUsers
         $invalidLegacyIds = 0;
         $existingCanonicalIds = 0;
         $invalidEmailVerificationStates = 0;
+        $invalidLegacyTimestamps = 0;
 
         foreach ($this->database->connection('legacy')->table('users')->select([
             'id',
@@ -76,24 +73,27 @@ final class AssessLegacyUsers
             'email_verified',
             'password',
             'status',
+            'created_at',
+            'updated_at',
         ])->lazyById() as $legacyUser) {
+            $legacyIdentity = LegacyUserIdentity::fromDatabaseRow($legacyUser);
             $totalUsers++;
             $hasAnomaly = false;
 
-            if (filter_var($legacyUser->id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
+            if (filter_var($legacyIdentity->id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
                 $invalidLegacyIds++;
                 $hasAnomaly = true;
-            } elseif (isset($canonicalIds[(string) $legacyUser->id])) {
+            } elseif (isset($canonicalIds[(string) $legacyIdentity->id])) {
                 $existingCanonicalIds++;
                 $hasAnomaly = true;
             }
 
-            if (Str::of("{$legacyUser->given_name} {$legacyUser->family_name}")->squish()->isEmpty()) {
+            if ($this->identityMapper->name($legacyIdentity) === '') {
                 $missingNames++;
                 $hasAnomaly = true;
             }
 
-            $normalizedEmail = $this->normalizeEmail($legacyUser->email);
+            $normalizedEmail = $this->identityMapper->email($legacyIdentity);
 
             if (filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL) === false) {
                 $invalidEmails++;
@@ -110,25 +110,30 @@ final class AssessLegacyUsers
                 }
             }
 
-            if (blank($legacyUser->password)) {
+            if (blank($legacyIdentity->password)) {
                 $missingPasswordHashes++;
                 $hasAnomaly = true;
-            } elseif ($bcryptHasher->verifyConfiguration($legacyUser->password)) {
+            } elseif ($bcryptHasher->verifyConfiguration($legacyIdentity->password)) {
                 $compatiblePasswordHashes++;
             } else {
                 $incompatiblePasswordHashes++;
                 $hasAnomaly = true;
             }
 
-            if (! in_array($legacyUser->status, self::KNOWN_LIFECYCLE_STATUSES, true)) {
+            if (! in_array($legacyIdentity->status, self::KNOWN_LIFECYCLE_STATUSES, true)) {
                 $unknownLifecycleStatuses++;
                 $hasAnomaly = true;
             }
 
-            if (in_array($legacyUser->email_verified, self::VERIFIED_EMAIL_STATES, true)) {
+            if ($this->identityMapper->hasVerifiedEmail($legacyIdentity)) {
                 $verifiedEmailStates++;
-            } elseif (! in_array($legacyUser->email_verified, self::UNVERIFIED_EMAIL_STATES, true)) {
+            } elseif (! $this->identityMapper->hasUnverifiedEmail($legacyIdentity)) {
                 $invalidEmailVerificationStates++;
+                $hasAnomaly = true;
+            }
+
+            if (! $this->identityMapper->hasPreservableTimestamps($legacyIdentity)) {
+                $invalidLegacyTimestamps++;
                 $hasAnomaly = true;
             }
 
@@ -152,11 +157,7 @@ final class AssessLegacyUsers
             invalidLegacyIds: $invalidLegacyIds,
             existingCanonicalIds: $existingCanonicalIds,
             invalidEmailVerificationStates: $invalidEmailVerificationStates,
+            invalidLegacyTimestamps: $invalidLegacyTimestamps,
         );
-    }
-
-    private function normalizeEmail(mixed $email): string
-    {
-        return Str::of((string) $email)->trim()->lower()->toString();
     }
 }

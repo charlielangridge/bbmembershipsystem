@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -189,9 +190,200 @@ it('reports normalized legacy duplicates and canonical email conflicts', functio
         ->assertFailed();
 });
 
-it('refuses to write until an explicit import mode is implemented', function () {
+it('imports compatible legacy identities using the explicit verification cutover timestamp', function () {
+    $verifiedHash = password_hash('verified-secret', PASSWORD_BCRYPT, ['cost' => 10]);
+    $unverifiedHash = password_hash('unverified-secret', PASSWORD_BCRYPT, ['cost' => 10]);
+    User::factory()->create([
+        'email' => 'existing-canonical@example.test',
+    ]);
+
+    DB::connection('legacy')->table('users')->insert([
+        legacyUserImportRow(41, [
+            'given_name' => '  Synthetic ',
+            'family_name' => ' Verified  ',
+            'email' => ' VERIFIED@example.test ',
+            'email_verified' => '1',
+            'password' => $verifiedHash,
+            'remember_token' => 'legacy-remember-token',
+            'updated_at' => '2021-03-04 05:06:07',
+        ]),
+        legacyUserImportRow(42, [
+            'given_name' => 'Synthetic',
+            'family_name' => 'Unverified',
+            'email' => 'unverified@example.test',
+            'email_verified' => '0',
+            'password' => $unverifiedHash,
+            'remember_token' => 'another-legacy-token',
+        ]),
+    ]);
+    $legacyUsersBefore = DB::connection('legacy')->table('users')->orderBy('id')->get();
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Canonical users before import: 1')
+        ->expectsOutputToContain('Imported legacy users: 2')
+        ->expectsOutputToContain('Canonical users after import: 3')
+        ->expectsOutputToContain('Canonical user count reconciled: 3')
+        ->doesntExpectOutputToContain('verified@example.test')
+        ->doesntExpectOutputToContain($verifiedHash)
+        ->doesntExpectOutputToContain('legacy-remember-token')
+        ->assertSuccessful();
+
+    $verifiedUser = User::query()->findOrFail(41);
+    $unverifiedUser = User::query()->findOrFail(42);
+
+    expect($verifiedUser->name)->toBe('Synthetic Verified')
+        ->and($verifiedUser->email)->toBe('verified@example.test')
+        ->and($verifiedUser->email_verified_at?->toISOString())->toBe('2026-08-27T17:00:00.000000Z')
+        ->and($verifiedUser->password)->toBe($verifiedHash)
+        ->and(Hash::check('verified-secret', $verifiedUser->password))->toBeTrue()
+        ->and($verifiedUser->remember_token)->toBeNull()
+        ->and($verifiedUser->created_at?->toDateTimeString())->toBe('2020-01-01 00:00:00')
+        ->and($verifiedUser->updated_at?->toDateTimeString())->toBe('2021-03-04 05:06:07')
+        ->and($unverifiedUser->email_verified_at)->toBeNull()
+        ->and($unverifiedUser->password)->toBe($unverifiedHash)
+        ->and(Hash::check('unverified-secret', $unverifiedUser->password))->toBeTrue()
+        ->and(DB::connection('legacy')->table('users')->orderBy('id')->get())->toEqual($legacyUsersBefore);
+
+    $canonicalUsersAfterImport = DB::table('users')->orderBy('id')->get();
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Existing canonical emails: 2')
+        ->expectsOutputToContain('Existing canonical IDs: 2')
+        ->expectsOutputToContain('Import blocked: resolve 2 identity anomalies before committing. No data was changed.')
+        ->assertFailed();
+
+    expect(DB::table('users')->orderBy('id')->get())->toEqual($canonicalUsersAfterImport);
+});
+
+it('requires an explicit verification cutover timestamp before importing', function () {
+    DB::connection('legacy')->table('users')->insert(legacyUserImportRow(41));
+
+    $this->artisan('legacy:import-users', ['--commit' => true])
+        ->expectsOutputToContain('A valid --verified-at ISO 8601 cutover timestamp is required. No data was changed.')
+        ->assertFailed();
+
+    expect(User::count())->toBe(0);
+});
+
+it('rejects a verification cutover timestamp that is not ISO 8601', function () {
+    DB::connection('legacy')->table('users')->insert(legacyUserImportRow(41));
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => 'August 27 2026 at 6pm',
+    ])
+        ->expectsOutputToContain('A valid --verified-at ISO 8601 cutover timestamp is required. No data was changed.')
+        ->assertFailed();
+
+    expect(User::count())->toBe(0);
+});
+
+it('blocks a commit when the assessment finds an identity anomaly', function () {
+    DB::connection('legacy')->table('users')->insert(legacyUserImportRow(41, [
+        'email' => 'private-invalid-email-value',
+    ]));
+    $legacyUserBefore = DB::connection('legacy')->table('users')->find(41);
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Identity anomalies: 1')
+        ->expectsOutputToContain('Import blocked: resolve 1 identity anomaly before committing. No data was changed.')
+        ->doesntExpectOutputToContain('private-invalid-email-value')
+        ->assertFailed();
+
+    expect(User::count())->toBe(0)
+        ->and(DB::connection('legacy')->table('users')->find(41))->toEqual($legacyUserBefore);
+});
+
+it('blocks a commit when legacy account timestamps cannot be preserved', function () {
+    DB::connection('legacy')->table('users')->insert(legacyUserImportRow(41, [
+        'created_at' => '0000-00-00 00:00:00',
+    ]));
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Invalid legacy timestamps: 1')
+        ->expectsOutputToContain('Import blocked: resolve 1 identity anomaly before committing. No data was changed.')
+        ->assertFailed();
+
+    expect(User::count())->toBe(0);
+});
+
+it('rolls back every canonical user when a committed import fails', function () {
+    DB::connection('legacy')->table('users')->insert([
+        legacyUserImportRow(41),
+        legacyUserImportRow(42),
+    ]);
+    $legacyUsersBefore = DB::connection('legacy')->table('users')->orderBy('id')->get();
+    DB::statement(<<<'SQL'
+        CREATE TRIGGER reject_second_legacy_user
+        BEFORE INSERT ON users
+        WHEN NEW.id = 42
+        BEGIN
+            SELECT RAISE(ABORT, 'private canonical database failure');
+        END
+        SQL);
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Unable to import users into the canonical database. No data was changed.')
+        ->doesntExpectOutputToContain('private canonical database failure')
+        ->assertFailed();
+
+    expect(User::count())->toBe(0)
+        ->and(DB::connection('legacy')->table('users')->orderBy('id')->get())->toEqual($legacyUsersBefore);
+});
+
+it('rolls back every canonical user when imported row counts do not reconcile', function () {
+    DB::connection('legacy')->table('users')->insert([
+        legacyUserImportRow(41),
+        legacyUserImportRow(42),
+    ]);
+    $legacyUsersBefore = DB::connection('legacy')->table('users')->orderBy('id')->get();
+    DB::statement(<<<'SQL'
+        CREATE TRIGGER skip_second_legacy_user
+        BEFORE INSERT ON users
+        WHEN NEW.id = 42
+        BEGIN
+            SELECT RAISE(IGNORE);
+        END
+        SQL);
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Unable to import users into the canonical database. No data was changed.')
+        ->doesntExpectOutputToContain('did not reconcile')
+        ->assertFailed();
+
+    expect(User::count())->toBe(0)
+        ->and(DB::connection('legacy')->table('users')->orderBy('id')->get())->toEqual($legacyUsersBefore);
+});
+
+it('requires exactly one execution mode', function () {
     $this->artisan('legacy:import-users')
-        ->expectsOutputToContain('Only --dry-run is currently available. No data was changed.')
+        ->expectsOutputToContain('Choose exactly one of --dry-run or --commit. No data was changed.')
+        ->assertFailed();
+
+    $this->artisan('legacy:import-users', [
+        '--dry-run' => true,
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])
+        ->expectsOutputToContain('Choose exactly one of --dry-run or --commit. No data was changed.')
         ->assertFailed();
 
     expect(User::count())->toBe(0)
@@ -204,7 +396,7 @@ it('fails without leaking connection details when legacy users cannot be read', 
         ->andThrow(new RuntimeException('Rejected legacy_user:legacy_password at legacy.internal'));
 
     $this->artisan('legacy:import-users', ['--dry-run' => true])
-        ->expectsOutputToContain('Unable to assess users from the configured legacy database connection.')
+        ->expectsOutputToContain('Unable to assess legacy user import compatibility.')
         ->doesntExpectOutputToContain('legacy_user')
         ->doesntExpectOutputToContain('legacy_password')
         ->doesntExpectOutputToContain('legacy.internal')
