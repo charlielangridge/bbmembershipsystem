@@ -15,6 +15,7 @@ On 27 August 2026, Charlie Langridge approved the two discovery-added capabiliti
 - `OPS-03` is P1 and uses Flare. Remove Rollbar rather than migrating it.
 - `ANALYTICS-01` is P2 and uses Fathom for anonymous aggregate page views across public, member, and administrative browser pages. Do not send member identifiers or sensitive business data. Marketing attribution and custom journey events are not currently required.
 - `AUTH-02` and `REPORT-02` use Laravel Reverb/Echo at P2. Remove hosted Pusher and its custom authorisation endpoint; preserve private member notifications, and recreate realtime activity only after its audience and payload are approved.
+- Fortify owns all human login, registration, reset, verification, confirmation, 2FA, and passkey flows. Same-origin Inertia and Filament use `web` guard sessions; Sanctum is reserved for approved first-party API/mobile clients and scoped API tokens and should be installed with the first tested API slice.
 
 The next unresolved work is production reconciliation: confirm the deployed legacy revision and infrastructure, name domain owners, inspect live provider/device configuration, and obtain approved schema/sanitised-data evidence.
 
@@ -22,7 +23,7 @@ The next unresolved work is production reconciliation: confirm the deployed lega
 
 - Complete feature parity is required before production cutover, including P3.
 - The final tranche is implemented last: historical direct-debit migration, PayPal/IPN donations, CCTV capture, Discord notifications, API documentation, and secure log viewing.
-- Member/public journeys use Inertia; privileged administration uses Filament; authentication uses Fortify.
+- Member/public journeys use Inertia; privileged administration uses Filament; human authentication uses Fortify with `web` sessions, while approved first-party API/mobile authentication uses Sanctum.
 - Spatie Laravel Permission is the intended authorization model.
 - The candidate legacy source revision is `d686bf6`; it is not confirmed as the deployed production revision.
 - No credentials, tokens, webhook values, or other secret values are recorded in the repository documentation.

@@ -335,7 +335,7 @@ Work order:
 2. Set Composer metadata, `BB\\` or a deliberately chosen `App\\` namespace, platform/extensions, stable dependencies, scripts, and production autoload settings.
 3. Port environment/configuration using modern names: `APP_KEY`, `DB_CONNECTION`, `FILESYSTEM_DISK`, `QUEUE_CONNECTION`, mail, cache, session, broadcast, trusted proxies/hosts, and service credentials. Use `env()` only in config files.
 4. Port models and schema mappings before controllers. Explicitly preserve nonstandard table names such as `subscription_charge`, `equipment_log`, `user_address`, and `access_log`.
-5. Port authentication while preserving existing password hashes and remember-token semantics. Use modern password reset, email verification decisions, session regeneration, and login throttling.
+5. Port authentication through Fortify while preserving existing password hashes and remember-token semantics. Use the `web` guard and secure session cookies for same-origin Inertia/Filament requests; use Sanctum only for approved first-party API/mobile clients and scoped API tokens. Retain modern password reset, email verification, session regeneration, and login throttling.
 6. Split routes into `routes/web.php`, `routes/api.php`, and versioned machine/provider route groups. Preserve names and paths through parity tests.
 7. Replace route/controller string references, old middleware registration, old exception signatures, legacy request/input facades, old event dispatch, mail APIs, helpers, factories, and model date/mutator APIs.
 8. Import legacy roles and assignments into Spatie Laravel Permission, then port authorization to policies/gates; leave temporary compatibility shims only where covered and scheduled for removal.
@@ -396,7 +396,7 @@ Work:
 
 - Pin Node 24 LTS and choose npm; remove `yarn.lock` only in the same change that introduces the replacement lock file.
 - Use the starter kit's Vite, Inertia, Vue, TypeScript, Wayfinder, Tailwind, and component conventions. Build member assets from the single Inertia root layout; keep Filament/Livewire assets and components inside the administration boundary.
-- Use Filament resources, pages, actions, and widgets only for privileged administration; share the Fortify user identity and enforce Spatie-backed Laravel policies.
+- Use Filament resources, pages, actions, and widgets only for privileged administration; share the Fortify user identity and `web` guard, enforce Spatie-backed Laravel policies, and reserve Sanctum for approved first-party API/mobile authentication.
 - Port LESS to supported Sass/CSS or plain CSS. Preserve visual behaviour before restyling.
 - Inventory and replace the widget set: payment form, notification table/count, expense list/modal/count, filterable payment table, feedback/snackbar, date picker, and Select2 fields.
 - Replace legacy Stripe Checkout first because it is a payment-flow migration, not merely UI work.

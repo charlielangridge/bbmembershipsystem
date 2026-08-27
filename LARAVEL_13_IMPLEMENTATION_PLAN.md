@@ -18,6 +18,7 @@ Canonical repository: [charlielangridge/bbmembershipsystem](https://github.com/c
 - Flare will provide P1 production error reporting; remove the legacy Rollbar server/browser integration rather than migrate it.
 - Fathom will provide P2 anonymous aggregate page views across public, member, and administrative browser pages. Do not send member identifiers or sensitive business data; marketing attribution and custom journey events are out of scope unless separately approved.
 - Laravel Reverb and Echo will provide P2 realtime broadcasting. Remove the hosted Pusher integration and custom `/session/pusher` authorisation endpoint in favour of Laravel's standard private-channel authorisation; approve the legacy activity-channel audience and payload before recreating it.
+- Fortify owns all human authentication flows. Same-origin Inertia and Filament requests use Laravel's `web` guard and secure session cookies; Sanctum will authenticate approved first-party API/mobile clients and scoped API tokens. Do not port legacy auth controllers or treat member tokens as a drop-in replacement for device credentials.
 
 ### Foundation checkpoint — 17 August 2026
 
@@ -41,7 +42,7 @@ This is the agreed pause point. No legacy business logic, schema, integrations, 
 | Canonical repository and modernisation branch | Complete | `origin` is `charlielangridge/bbmembershipsystem`; work is pushed to `modernisation/laravel-13`. The deployed legacy commit still needs confirmation and a permanent baseline tag. |
 | Laravel application skeleton | Complete | Conventional Laravel 13 root layout on PHP 8.4; legacy runtime remains available in Git history only. |
 | Inertia Vue frontend foundation | Complete | Inertia 3, Vue 3, TypeScript, Tailwind 4, Vite, and Wayfinder are installed and build successfully. No legacy screens have been ported. |
-| Authentication foundation | Complete | Fortify owns registration, login/logout, password reset, verification, confirmation, 2FA, and passkeys, with Pest coverage. Legacy password, user, role, and verification-state mapping remains Milestone 3 work. |
+| Authentication foundation | Fortify browser foundation complete; migration/API work pending | Fortify owns registration, login/logout, password reset, verification, confirmation, 2FA, and passkeys through the `web` guard, with Pest coverage. Sanctum is selected for approved first-party API/mobile authentication but will be installed with its first tested API slice. Legacy password, user, role, and verification-state mapping remains Milestone 3 work. |
 | Permissions and administration | Decision complete; implementation pending | Spatie Laravel Permission will own roles/permissions and Laravel policies will enforce them. Filament will provide privileged administration using the same `User` model and `web` guard as the Fortify member flows; package installation and legacy-role migration remain Milestone 3 work. |
 | Test and analysis foundation | Complete | Pest 5 is the authored PHP test style; Pint, Larastan, ESLint, Prettier, Vue type checking, and dependency audits are enforced. |
 | Laravel Boost guidance | Complete | Repository guidance, MCP configuration, and the Fortify, Inertia Vue, Wayfinder, Pest, Laravel, and Tailwind skills are installed. |
@@ -203,7 +204,8 @@ Laravel Boost will be installed immediately after the skeleton and its generated
 |---|---|---|
 | Framework | Laravel `^13.0` | Track current patch releases |
 | PHP | `~8.4.0` | PHP 8.5 is a later, separate change |
-| Authentication | Laravel Fortify | Fortify owns login, registration, password reset, email verification, password confirmation, 2FA, and passkeys; do not port legacy auth controllers |
+| Authentication | Laravel Fortify + `web` guard sessions | Fortify owns login, registration, password reset, email verification, password confirmation, 2FA, and passkeys for Inertia and Filament; do not port legacy auth controllers |
+| API authentication | Laravel Sanctum | Use only for approved first-party API/mobile clients and scoped API tokens; install with the first API slice and do not conflate member tokens with provider signatures or device credentials |
 | Authorisation | Spatie Laravel Permission `^8.0` + Laravel policies | Import legacy roles/assignments into one authoritative permission store; policies remain the enforcement boundary |
 | Tests | Pest `^5.0` | Pest is the only authored PHP test style; PHPUnit remains an implementation dependency only |
 | Database | Production-compatible supported MySQL/MariaDB | Exact engine/version decided from production inventory |
@@ -366,6 +368,7 @@ Goal: establish authentication and the permissions foundation used by every late
 Tasks:
 
 - Use Fortify as the authoritative authentication backend; do not port the legacy Laravel 5 authentication controllers or traits.
+- Keep same-origin Inertia and Filament authentication on the `web` guard with secure session cookies. Install/configure Sanctum with the first approved API/mobile slice, define minimal token abilities and revocation/expiry policy, and test that browser and token authentication boundaries cannot be confused.
 - Map legacy users into Fortify-compatible accounts while preserving existing password hashes; prove representative hashes authenticate without resets.
 - Map the legacy verification state into `email_verified_at`, and leave 2FA/passkeys unenrolled until each member opts in.
 - Verify secure logout, session regeneration, login throttling, registration, password reset, email verification, password confirmation, 2FA, and passkey flows.
