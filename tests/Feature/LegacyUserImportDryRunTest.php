@@ -261,6 +261,43 @@ it('imports compatible legacy identities using the explicit verification cutover
     expect(DB::table('users')->orderBy('id')->get())->toEqual($canonicalUsersAfterImport);
 });
 
+it('authenticates an imported legacy password through Fortify and upgrades its hash', function () {
+    $legacyHash = password_hash('legacy-login-secret', PASSWORD_BCRYPT, ['cost' => 8]);
+
+    DB::connection('legacy')->table('users')->insert(legacyUserImportRow(41, [
+        'email' => ' LEGACY-LOGIN@example.test ',
+        'password' => $legacyHash,
+    ]));
+
+    $this->artisan('legacy:import-users', [
+        '--commit' => true,
+        '--verified-at' => '2026-08-27T18:00:00+01:00',
+    ])->assertSuccessful();
+
+    $importedUser = User::query()->findOrFail(41);
+
+    expect($importedUser->password)->toBe($legacyHash)
+        ->and(Hash::needsRehash($importedUser->password))->toBeTrue();
+
+    $this->withSession(['legacy-login-test' => true]);
+    $sessionIdBeforeLogin = session()->getId();
+
+    $response = $this->post(route('login.store'), [
+        'email' => 'legacy-login@example.test',
+        'password' => 'legacy-login-secret',
+    ]);
+
+    $response->assertRedirect(route('dashboard', absolute: false));
+    $this->assertAuthenticatedAs($importedUser);
+
+    $upgradedHash = $importedUser->fresh()->password;
+
+    expect(session()->getId())->not->toBe($sessionIdBeforeLogin)
+        ->and($upgradedHash)->not->toBe($legacyHash)
+        ->and(Hash::check('legacy-login-secret', $upgradedHash))->toBeTrue()
+        ->and(Hash::needsRehash($upgradedHash))->toBeFalse();
+});
+
 it('requires an explicit verification cutover timestamp before importing', function () {
     DB::connection('legacy')->table('users')->insert(legacyUserImportRow(41));
 
