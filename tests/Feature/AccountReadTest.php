@@ -2,8 +2,6 @@
 
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 it('allows a member to view their own account', function () {
     $member = User::factory()->create([
@@ -53,18 +51,11 @@ it('forbids a member from viewing another account', function () {
 });
 
 it('allows a member manager to view another account', function () {
-    $permission = Permission::create([
-        'name' => 'members.manage',
-        'guard_name' => 'web',
-    ]);
-    $role = Role::create([
-        'name' => 'admin',
-        'guard_name' => 'web',
-    ]);
-    $role->givePermissionTo($permission);
-
-    $memberManager = User::factory()->create();
-    $memberManager->assignRole($role);
+    $memberManager = assignRoleWithPermissions(
+        User::factory()->create(),
+        'admin',
+        ['members.manage'],
+    );
     $member = User::factory()->create();
 
     $this->actingAs($memberManager)
