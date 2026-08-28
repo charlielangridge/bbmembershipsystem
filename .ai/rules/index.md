@@ -9,6 +9,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Policies/UserPolicy.php|app/Http/Controllers/AccountController.php|routes/web.php|resources/js/pages/account/**|tests/Feature/AccountReadTest.php | .ai/rules/feature.md |
 | resources/js/** | .ai/rules/js.md |
 | app/Actions/Legacy/**|app/Console/Commands/Legacy*|tests/Feature/Legacy* | .ai/rules/legacy-user-import.md |
+| app/MemberVisibility.php|app/Models/MemberProfile.php|app/Policies/MemberProfilePolicy.php|app/Http/Controllers/Member*|database/**/MemberProfile*|database/migrations/*member_profiles*|routes/web.php|resources/js/pages/members/**|tests/Feature/MemberDirectoryPrivacyTest.php | .ai/rules/members-feature.md |
 | app/**|config/**|resources/**|routes/**|tests/**|docs/parity/** | .ai/rules/parity.md |
 | app/Providers/Filament/**|app/Http/Middleware/AuthenticateFilament.php|app/Filament/**|app/Models/User.php|app/Policies/UserPolicy.php|tests/Feature/Filament* | .ai/rules/policies-feature.md |
 | app/Filament/**|app/Models/User.php|app/Policies/**|tests/** | .ai/rules/policies.md |

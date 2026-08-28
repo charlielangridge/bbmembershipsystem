@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -45,6 +46,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
         return $panel->getId() === 'admin'
             && $this->hasVerifiedEmail()
             && $this->can('admin-panel.access');
+    }
+
+    /**
+     * Get the member's public-facing profile.
+     *
+     * @return HasOne<MemberProfile, $this>
+     */
+    public function memberProfile(): HasOne
+    {
+        return $this->hasOne(MemberProfile::class);
     }
 
     /**
