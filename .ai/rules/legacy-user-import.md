@@ -17,3 +17,9 @@ The write import requires an ISO 8601 --verified-at value. Convert it to UTC and
 
 ## Prepare the production identity cutover
 Before the production cutover run, freeze legacy writes and rerun the dry-run against that frozen snapshot. The production runbook must reconcile user counts and verify or reset the canonical users primary-key sequence after the target database engine is selected.
+
+## Import legacy roles fail closed
+Import every legacy role and assignment except the pseudo-role member, which is derived from member status. Only admin, finance, comms, equipment, acs, and storage receive the approved role permissions; laser, storage-box-user, and unknown roles retain membership with zero permissions. Never assign permissions directly to users, and block anomalous or pre-populated imports.
+
+## Keep imported roles least privileged
+Admin receives only admin-panel.access, roles.manage, and members.manage. Finance, comms, equipment, acs, and storage receive only their approved domain permissions; specialist roles do not inherit panel access. Preserve inert and unknown legacy role names exactly while using normalized names only for classification and collision checks.
