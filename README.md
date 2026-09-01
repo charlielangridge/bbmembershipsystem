@@ -36,6 +36,15 @@ Run the development environment with:
 composer run dev
 ```
 
+For a production-like local stack, Laravel Sail provides PHP 8.4, MySQL 8.4, Valkey, Mailpit, and a separate queue worker:
+
+```shell
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate
+```
+
+Mailpit is available at `http://localhost:8025`. Native tests continue to use an in-memory SQLite database for speed, while CI migrates the complete schema on MySQL 8.4 before running the suite.
+
 ## Quality checks
 
 ```shell
@@ -48,4 +57,4 @@ npm run format:check
 npm run build
 ```
 
-The migration approach and acceptance gates are documented in [LARAVEL_13_IMPLEMENTATION_PLAN.md](LARAVEL_13_IMPLEMENTATION_PLAN.md). The original audit is retained in [MODERNISATION_MASTERPLAN.md](MODERNISATION_MASTERPLAN.md).
+The migration approach, completed work, acceptance gates, and operational handoff are maintained in [MASTERPLAN.md](MASTERPLAN.md).

@@ -26,6 +26,11 @@
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
+        <env name="FLARE_KEY" value=""/>
+        <env name="FLARE_LOG" value="(false)"/>
+        <env name="FLARE_REPORT" value="(false)"/>
+        <env name="FLARE_SHARE_BUTTON" value="(false)"/>
+        <env name="FLARE_TRACE" value="(false)"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

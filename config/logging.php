@@ -126,6 +126,10 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'flare' => [
+            'driver' => 'flare',
+        ],
+
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,

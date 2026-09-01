@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Spatie\FlareClient\AttributesProviders\EmptyUserAttributesProvider;
+use Spatie\LaravelFlare\AttributesProviders\LaravelUserAttributesProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +17,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(
+            LaravelUserAttributesProvider::class,
+            EmptyUserAttributesProvider::class,
+        );
     }
 
     /**
