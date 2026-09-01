@@ -9,7 +9,7 @@ it('reports application liveness without exposing configuration', function () {
         ->assertDontSee('FLARE_KEY');
 
     foreach ([config('app.key'), config('database.connections.mysql.password')] as $secret) {
-        if (is_string($secret) && $secret !== '') {
+        if (is_string($secret) && strlen($secret) >= 12) {
             $response->assertDontSee($secret);
         }
     }

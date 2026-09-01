@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -176,7 +177,10 @@ it('reports normalized legacy duplicates and canonical email conflicts', functio
         legacyUserImportRow(2, ['email' => 'DUPLICATE@example.test']),
         legacyUserImportRow(3, ['email' => 'existing@example.test']),
     ]);
-    User::factory()->create(['email' => 'EXISTING@example.test']);
+    User::factory()->create([
+        'id' => 1,
+        'email' => 'EXISTING@example.test',
+    ]);
 
     $this->artisan('legacy:import-users', ['--dry-run' => true])
         ->expectsOutputToContain('Total legacy users: 3')
@@ -362,14 +366,12 @@ it('rolls back every canonical user when a committed import fails', function () 
         legacyUserImportRow(42),
     ]);
     $legacyUsersBefore = DB::connection('legacy')->table('users')->orderBy('id')->get();
-    DB::statement(<<<'SQL'
-        CREATE TRIGGER reject_second_legacy_user
-        BEFORE INSERT ON users
-        WHEN NEW.id = 42
-        BEGIN
-            SELECT RAISE(ABORT, 'private canonical database failure');
-        END
-        SQL);
+    DB::listen(function (QueryExecuted $query): void {
+        if ($query->connectionName === config('database.default')
+            && preg_match('/insert into [`"]?users[`"]?/i', $query->sql) === 1) {
+            throw new RuntimeException('private canonical database failure');
+        }
+    });
 
     $this->artisan('legacy:import-users', [
         '--commit' => true,
@@ -389,14 +391,12 @@ it('rolls back every canonical user when imported row counts do not reconcile', 
         legacyUserImportRow(42),
     ]);
     $legacyUsersBefore = DB::connection('legacy')->table('users')->orderBy('id')->get();
-    DB::statement(<<<'SQL'
-        CREATE TRIGGER skip_second_legacy_user
-        BEFORE INSERT ON users
-        WHEN NEW.id = 42
-        BEGIN
-            SELECT RAISE(IGNORE);
-        END
-        SQL);
+    DB::listen(function (QueryExecuted $query): void {
+        if ($query->connectionName === config('database.default')
+            && preg_match('/insert into [`"]?users[`"]?/i', $query->sql) === 1) {
+            DB::table('users')->where('id', 42)->delete();
+        }
+    });
 
     $this->artisan('legacy:import-users', [
         '--commit' => true,

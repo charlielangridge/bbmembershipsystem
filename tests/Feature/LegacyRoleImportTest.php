@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -242,13 +243,12 @@ it('rolls back the permission store when imported authorization counts do not re
         'created_at' => '2020-01-01 00:00:00',
         'updated_at' => '2020-01-01 00:00:00',
     ]);
-    DB::statement(<<<'SQL'
-        CREATE TRIGGER skip_legacy_role_assignment
-        BEFORE INSERT ON model_has_roles
-        BEGIN
-            SELECT RAISE(IGNORE);
-        END
-        SQL);
+    DB::listen(function (QueryExecuted $query): void {
+        if ($query->connectionName === config('database.default')
+            && preg_match('/insert into [`"]?model_has_roles[`"]?/i', $query->sql) === 1) {
+            DB::table('model_has_roles')->delete();
+        }
+    });
 
     $this->artisan('legacy:import-roles', ['--commit' => true])
         ->expectsOutputToContain('Unable to import roles into the canonical permission store. No data was changed.')
